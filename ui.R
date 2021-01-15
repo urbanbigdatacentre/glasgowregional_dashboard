@@ -3,8 +3,8 @@ tagList( #needed for shinyjs
   useShinyjs(),  # Include shinyjs from UI for the functions to work
   #div(img(src="glasgow_header.jpg", style="height:100%; width: 100%; position: relative;")),
   div(class = "container",
-      img(src="glasgow_header.jpg", style="width:100%; height:220px;")#,
-      #p(h1("Title over text", style="color: white; z-index: 100;"))
+      img(src="glasgow_header.jpg", style="width:100%; height:220px;"),#,
+      p(h1("Title over text", style="color: white; z-index: 100;"))
       ),
   navbarPage(id = "intabset", #landingpage title
              title = "", #div(tags$a(img(src="glasgow_header.jpg", height=35)),
@@ -23,7 +23,7 @@ tagList( #needed for shinyjs
 ########################################################
 #Landing Page
 #########################################################
-  tabPanel(title="Single Area Summary", icon = icon("search-dollar"),   
+  tabPanel(class= "tabs",title="Single Area Summary", icon = icon("search-dollar"),   
             mainPanel(width=11, style="margin-left:4%, margin-right:4%",
                       fluidRow(column(7,p(h3("Welcome to the Glasgow City Region Tool")))),
                       #print out map showing Glasgow city regions - for user interaction

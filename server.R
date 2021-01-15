@@ -41,7 +41,7 @@ output$region_noqualification <- renderText({signif(latest_data$Value[latest_dat
 output$region_unemployed <- renderText({signif(latest_data$Value[latest_data$Region == input$regionsmap_shape_click$id & latest_data$Indicator == "Unemployment Rate 16-64 (%)"],3)})
 output$region_ecoinactive <- renderText({signif(latest_data$Value[latest_data$Region == input$regionsmap_shape_click$id & latest_data$Indicator == "Economic Inactivity Rate 16-64 (%)"],3)})
 output$region_claimcount <- renderText({signif(latest_data$Value[latest_data$Region == input$regionsmap_shape_click$id & latest_data$Indicator == "Claimants as a proportion of residents aged 16-64 (%)"],3)})
-output$region_childpoverty <- renderText({signif(100*(latest_data$Value[latest_data$Region == input$regionsmap_shape_click$id & latest_data$Indicator == "% of children not in poverty (after housing costs) "]),3)})
+output$region_childpoverty <- renderText({signif((latest_data$Value[latest_data$Region == input$regionsmap_shape_click$id & latest_data$Indicator == "% of children in poverty (after housing costs)"]),3)})
 output$region_emissions <- renderText({round(latest_data$Value[latest_data$Region == input$regionsmap_shape_click$id & latest_data$Indicator == "Emissions per capita (tonnes)"],2)})
 
 #Hover to show extra info about data source, year of data being shown, and % changes over specific time periods
@@ -136,11 +136,11 @@ output$claimcount_year <- renderUI({
 
 #Child poverty
 output$childpoverty_extra_info <- renderUI({
-  link <- source_data$Source[source_data$Indicator == "% of children not in poverty (after housing costs)"]
+  link <- source_data$Source[source_data$Indicator == "% of children in poverty (after housing costs)"]
   a(href=link,
     "Data Source") })
 output$childpoverty_year <- renderUI({
-  recent_year <- latest_data$Year[latest_data$Region == input$regionsmap_shape_click$id & latest_data$Indicator == "% of children not in poverty (after housing costs) "]
+  recent_year <- latest_data$Year[latest_data$Region == input$regionsmap_shape_click$id & latest_data$Indicator == "% of children in poverty (after housing costs)"]
   p(recent_year) })
 
 #Emissions
@@ -153,19 +153,44 @@ output$emissions_year <- renderUI({
   p(recent_year) })
 
 
-#downloading of the data
-output$single_area_summary_md <- downloadHandler(
-  filename = paste0(input$regionsmap_shape_click$id,"_area_summary.docx"),
-  content = function(file){
+#downloading of the data - first go # works, but doesn't download in the right format
+# output$single_area_summary_md <- downloadHandler(
+#   filename = paste0(input$regionsmap_shape_click$id,"_area_summary.docx"),
+#   content = function(file){
+#     tempReport <- file.path(tempdir(), "region_summary_download.Rmd")
+#     file.copy("region_summary_download.Rmd",tempReport, overwrite = TRUE)
+#     #parameters to pass to Rmd document
+#     params <- list(Region = input$regionsmap_shape_click$id)
+#     #knitting the document
+#     rmarkdown:: render(tempReport, 'word_document', output_file = file,
+#                        params = params,
+#                        envir =  new.env(parent = globalenv())
+#                        )
+#   }
+# )
+
+#downloading data by creating report first
+download_file <- reactive({
     tempReport <- file.path(tempdir(), "region_summary_download.Rmd")
     file.copy("region_summary_download.Rmd",tempReport, overwrite = TRUE)
     #parameters to pass to Rmd document
     params <- list(Region = input$regionsmap_shape_click$id)
     #knitting the document
-    rmarkdown:: render(tempReport, 'word_document', output_file = file,
+    rmarkdown:: render(tempReport, 'word_document', output_file = tempReport,
                        params = params,
-                       envir =  new.env(parent = globalenv())
-                       )
+                       envir =  new.env(parent = globalenv()))
+                    
+    report$filepath <- tempReport        
+})
+
+#now instructions for download button
+output$single_area_summary_md <- downloadHandler(
+  filename = function() {
+    paste0(input$client,"_",Sys.Date(),".docx") %>%
+      gsub(" ","_",.)
+      },
+  content = function(file){
+    file.copy(report$filepath, file)
   }
 )
 ##############################################

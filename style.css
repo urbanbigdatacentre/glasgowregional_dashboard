@@ -10,6 +10,11 @@ html{
   min-height:100%;
 }
 
+.tabs {
+  display: flex;
+  align-items: center;
+  margin: auto;
+}
 /*header formatting*/
 .container {
   width: 100%;
