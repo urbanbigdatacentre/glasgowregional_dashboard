@@ -3,8 +3,11 @@ tagList( #needed for shinyjs
   useShinyjs(),  # Include shinyjs from UI for the functions to work
   #div(img(src="glasgow_header.jpg", style="height:100%; width: 100%; position: relative;")),
   div(class = "container",
-      img(src="glasgow_header.jpg", style="width:100%; height:220px;"),#,
-      p(h1("Title over text", style="color: white; z-index: 100;"))
+      br(),
+      p(class="header-title", "GLASGOW REGIONS", style = "margin-top: 10px; opacity: 0.9;"),   #, style="color: white; font-family: 'Franklin Gothic Medium', 'Franklin Gothic', 'ITC Franklin Gothic', Arial, sans-serif;  font-size: 40px; line-height: 20px"),
+      p(class="header-title", "ECONOMIC", style = "opacity: 0.7;"), #style="color: font-family: 'Franklin Gothic Medium', 'Franklin Gothic', 'ITC Franklin Gothic', Arial, sans-serif;  font-size: 40px;"),
+      p(class="header-title", "DASHBOARD", style = "opacity: 0.5;"),#, style="color: white; font-family: 'Franklin Gothic Medium', 'Franklin Gothic', 'ITC Franklin Gothic', Arial, sans-serif;  font-size: 40px;")
+      br()
       ),
   navbarPage(id = "intabset", #landingpage title
              title = "", #div(tags$a(img(src="glasgow_header.jpg", height=35)),
