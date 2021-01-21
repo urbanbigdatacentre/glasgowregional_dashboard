@@ -10,15 +10,14 @@ tagList( #needed for shinyjs
       br()
       ),
   navbarPage(id = "intabset", #landingpage title
-             title = "", #div(tags$a(img(src="glasgow_header.jpg", height=35)),
-             #            style = "position: relative; top: -6px;"), # Navigation bar
-             windowTitle = "Glasgow City Region", #title for browser tab
+             title = "",
+             windowTitle = "Glasgow City Region Economic Dashboard", #title for browser tab
              theme = shinytheme("slate"), #Theme of the app #dark blue background
              collapsible = TRUE, #tab panels collapse into menu in small screens
              # header =         
              # tags$head( #CSS styles
              #  cookie_box, ##Cookie box
-             #  tags$link(rel="shortcut icon", href="favicon_scotpho.ico"), #Icon for browser tab
+            #tags$link(rel="shortcut icon", href="favicon_scotpho.ico"), #Icon for browser tab
             header = includeCSS("style.css"),
              #  HTML("<base target='_blank'>") # to make external links open a new tab
            #  ,
@@ -41,54 +40,77 @@ tagList( #needed for shinyjs
                                         br(), br(),
                                         #printing out summary data          
                                         fluidRow(column(4,offset=1,div(class= "summary_box",
-                                            div(class= "summary_title",p("Population")),
+                                            div(class= "summary_title",p("Total Population")),
+                                                                       div(uiOutput("pop_year"),style = "line-height:1px; font-size: 10px;"),
                                             div(class= "summary_value",textOutput("region_population"))),
-                                            div(class="expanding_element",uiOutput("pop_year"),
-                                            uiOutput("pop_extra_info"))),
+                                            div(class="expanding_element",uiOutput("pop_year_change", style="line-height: 1px;"),
+                                                                          br(),uiOutput("pop_extra_info"))),
                                         column(4,offset=2,div(class= "summary_box",
                                             div(class= "summary_title",p("Total Jobs")),
+                                                         div(uiOutput("jobs_year"),style = "line-height:1px; font-size: 10px;"),
                                             div(class= "summary_value",textOutput("region_jobs"))),
-                                            div(class= "expanding_element",uiOutput("jobs_year"),uiOutput("jobs_extra_info")))),
+                                            div(class= "expanding_element",uiOutput("jobs_year_change", style="line-height: 1px;"),
+                                                br(),uiOutput("jobs_extra_info")))),
                                         fluidRow(column(4,offset=1,div(class= "summary_box",
-                                            div(class= "summary_title",p("GVA per Hr Worked (£)")),
+                                            div(class= "summary_title",p("GVA/Hr Worked")),
+                                                                      div(uiOutput("GVAworked_year"),style = "line-height:1px; font-size: 10px;"),
                                             div(class= "summary_value",textOutput("region_GVAworked"))),
-                                            div(class= "expanding_element",uiOutput("GVAworked_year"), uiOutput("GVAworked_extra_info"))),
+                                            div(class= "expanding_element",uiOutput("GVAworked_year_change", style="line-height: 1px;"),
+                                                        br(),uiOutput("GVAworked_extra_info"))),
                                         column(4,offset=2,div(class= "summary_box",
-                                            div(class= "summary_title",p("Enterprises Per 10k Population")),
+                                            div(class= "summary_title",p("Enterprises/10k Population")),
+                                                                      div(uiOutput("enterprises_year"),style = "line-height:1px; font-size: 10px;"),
                                             div(class= "summary_value",textOutput("region_enterprises"))),
-                                            div(class= "expanding_element",uiOutput("enterprises_year"),uiOutput("enterprises_extra_info")))),
+                                            div(class= "expanding_element",uiOutput("enterprises_year_change", style="line-height: 1px;"),
+                                                br(),uiOutput("enterprises_extra_info")))),
                                         fluidRow(column(4,offset=1,div(class= "summary_box",
-                                            div(class= "summary_title",p("Service Exports Per Job (£)")),
+                                            div(class= "summary_title",p("Service Exports/Job")),
+                                                                      div(uiOutput("serviceexports_year"),style = "line-height:1px; font-size: 10px;"),
                                             div(class= "summary_value",textOutput("region_serviceexports"))),
-                                            div(class= "expanding_element",uiOutput("serviceexports_year"),uiOutput("serviceexports_extra_info"))),
+                                            div(class= "expanding_element",#uiOutput("serviceexports_year_change", style="line-height: 1px;"), br(),
+                                                uiOutput("serviceexports_extra_info"))),
                                         column(4,offset=2,div(class= "summary_box",
-                                            div(class= "summary_title",p("Total Median Income(weekly/£)")),
+                                            div(class= "summary_title",p("Total Weekly Median Income")),
+                                                                      div(uiOutput("medianincome_year"),style = "line-height:1px; font-size: 10px;"),
                                             div(class= "summary_value",textOutput("region_medianincome"))),
-                                            div(class= "expanding_element",uiOutput("medianincome_year"),uiOutput("medianincome_extra_info")))),
+                                            div(class= "expanding_element",uiOutput("medianincome_year_change", style="line-height: 1px;"),
+                                                br(),uiOutput("medianincome_extra_info")))),
                                         fluidRow(column(4,offset=1,div(class= "summary_box",
-                                            div(class= "summary_title",p("Working Age Population - no Qualifications (%)")),
+                                            div(class= "summary_title",p("Working Age Population with No Qualifications")),
+                                                                      div(uiOutput("noqualification_year"),style = "line-height:1px; font-size: 10px;"),
                                             div(class= "summary_value",textOutput("region_noqualification"))),
-                                            div(class= "expanding_element",uiOutput("noqualification_year"),uiOutput("noqualification_extra_info"))),
+                                            div(class= "expanding_element",uiOutput("noqualification_year_change", style="line-height: 1px;"),
+                                                br(),uiOutput("noqualification_extra_info"))),
                                         column(4,offset=2,div(class= "summary_box",
-                                            div(class= "summary_title",p("Unemployment Rate (%)")),
+                                            div(class= "summary_title",p("Unemployment Rate")),
+                                                                      div(uiOutput("unemployed_year"),style = "line-height:1px; font-size: 10px;"),
                                             div(class= "summary_value",textOutput("region_unemployed"))),
-                                            div(class= "expanding_element",uiOutput("unemployed_year"),uiOutput("unemployed_extra_info")))),
+                                            div(class= "expanding_element",uiOutput("unemployed_year_change", style="line-height: 1px;"),
+                                                br(),uiOutput("unemployed_extra_info")))),
                                         fluidRow(column(4,offset=1,div(class= "summary_box",
-                                            div(class= "summary_title",p("Economic Inactivity Rate (%)")),
+                                            div(class= "summary_title",p("Economic Inactivity Rate")),
+                                                                      div(uiOutput("ecoinactive_year"),style = "line-height:1px; font-size: 10px;"),
                                             div(class= "summary_value",textOutput("region_ecoinactive"))),
-                                            div(class= "expanding_element",uiOutput("ecoinactive_year"),uiOutput("ecoinactive_extra_info"))),
+                                            div(class= "expanding_element",uiOutput("ecoinactive_year_change", style="line-height: 1px;"),
+                                                br(),uiOutput("ecoinactive_extra_info"))),
                                         column(4,offset=2,div(class= "summary_box",
-                                            div(class= "summary_title",p("Claimant Count (% of residents aged 16-64)")),
+                                            div(class= "summary_title",p("Claimant Count (of residents aged 16-64)")),
+                                                                       div(uiOutput("claimcount_year"),style = "line-height:1px; font-size: 10px;"),
                                             div(class= "summary_value",textOutput("region_claimcount"))),
-                                            div(class= "expanding_element",uiOutput("claimcount_year"),uiOutput("claimcount_extra_info")))),
+                                            div(class= "expanding_element",uiOutput("claimcount_year_change", style="line-height: 1px;"),
+                                                br(),uiOutput("claimcount_extra_info")))),
                                         fluidRow(column(4,offset=1,div(class= "summary_box",
-                                            div(class= "summary_title",p("% Children in Poverty")),
+                                            div(class= "summary_title",p("Children in Poverty")),
+                                                                      div(uiOutput("childpoverty_year"),style = "line-height:1px; font-size: 10px;"),
                                             div(class= "summary_value",textOutput("region_childpoverty"))),
-                                            div(class= "expanding_element",uiOutput("childpoverty_year"),uiOutput("childpoverty_extra_info"))),
+                                            div(class= "expanding_element",uiOutput("childpoverty_year_change", style="line-height: 1px;"),
+                                                br(),uiOutput("childpoverty_extra_info"))),
                                         column(4,offset=2,div(class= "summary_box",
                                             div(class= "summary_title",p("Emissions Per Capita")),
+                                                                      div(uiOutput("emissions_year"),style = "line-height:1px; font-size: 10px;"),
                                             div(class= "summary_value",textOutput("region_emissions"))),
-                                            div(class= "expanding_element",uiOutput("emissions_year"),uiOutput("emissions_extra_info")))),
+                                            div(class= "expanding_element",uiOutput("emissions_year_change", style="line-height: 1px;"),
+                                                br(),uiOutput("emissions_extra_info")))),
                                         br(),br(),
                                         fluidRow(column(6,offset=3,
                                           downloadButton("single_area_summary_md", 'Download this summary', class = "down") 
@@ -117,17 +139,29 @@ tagList( #needed for shinyjs
                                 # options = list(
                                  #  style = "#282829")
                                ),
-                        column(4,div(class="selector",p(tags$b("2. Change local authorities being shown")),
-                                     selectInput("location_choice", label = "All regions are shown by default, delete accordingly", choices=glasgow_regions,
-                                                 selected = glasgow_regions, multiple=TRUE))
+                        column(4,div(class="selector",p(tags$b("2. Select local authorities of interest")),
+                                     selectInput("location_choice", label = "Multiple areas may be chosen", choices=glasgow_regions,
+                                                 selected = NULL, multiple=TRUE))
                                ),
                         column(4,div(class="selector",p(tags$b("3. Choose a comparator area")),
                                      selectInput("comparator_choice", label = "All regions are shown by default, delete accordingly", choices=comparators,
                                                  selected = NULL))
                       )
-                      )
-                                                                ) # panel bracket
-              ), # end of tab
+                      )),
+                      fluidRow(
+                        #Leaflet map to show areas
+                        column(5,div(class="graph_title",
+                                     textOutput("glasgow_map_title"))
+                               ), # column bracket
+                        column(6, offset=1, div(class="graph_title",
+                                     textOutput("glasgow_timetrend_title")),
+                               plotlyOutput("time_trend_glasgow")
+                               )) # row bracket
+                    #  fluidRow(
+                     #   column(4,
+                      #         )
+                     # ) #row bracket                                                                
+                     ), # end of tab
              
              tabPanel(title="Compare UK City Regions", icon=icon("globe-europe")
                       

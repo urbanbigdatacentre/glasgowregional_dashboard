@@ -2,7 +2,8 @@
 
 /*#body {background-color:black;} */
 body {
-  background-image:linear-gradient(black,#595065);
+ /* background-image:linear-gradient(black,#595065); */
+ background-image:linear-gradient(black,#4A2C40);
   margin: 0;
   }
   
@@ -15,6 +16,13 @@ html{
   font-family: 'Franklin Gothic Medium', 'Franklin Gothic', 'ITC Franklin Gothic', Arial, sans-serif;   font-size: 45px; 
   line-height: 22px;
   /** opacity: 0.5; */
+}
+
+#intabset {
+  display: inline-block;
+  float: none;
+  vertical-align: top;
+  text-align: center;
 }
 
 .tabs {
@@ -56,11 +64,13 @@ html{
 
 /*single area summary boxes */
 .summary_box {
-  width:100px;
- /* width:100%; 
+  width:150%;
+ /* width:100%; 120px
  height:80%;*/
-  height: 80%;
-  background-color:#282829;
+  height: 100%;
+  min-height: 80px;
+  background-color: #7d3778;
+  /* brighter colour version #7d3780; */
   margin-bottom: 5px; 
   margin-top: 5px;
   transition: 0.5s ease;
@@ -69,7 +79,7 @@ html{
 }
 
 .summary_value {
-       color: #f0c38e;
+       color: #E9BD43;
        font-size: 18px;
        font-weight: bold;
 }
@@ -98,10 +108,10 @@ html{
   color: white;
   line-height:10px;
   font-size: 10px;
-    width:100px;
+    width:150%;
  /* width:100%; 
  height:80%;*/
-  background-color:#282829;
+  background-color:#7d3780;
   /* height: 80%; */
   margin-bottom: 5px; 
   margin-top: -0.5em;
@@ -112,11 +122,6 @@ html{
   height: 0;
 }
 
-/*highlight summary box when hovering iver it using colour change */
-/*.summary_box:hover {
-  transform: scale(2);
-  background-color: black;
-} */
 
 /* expand extra details box when hovering over summary box */
 .summary_box:hover + .expanding_element {
@@ -126,11 +131,15 @@ html{
 
 .expanding_element:hover + .summary_box {
   transform: scale(2);
-  background-color: black;
+  background-color: #7d3780;
 }
 
 /*keep details showing even when moving the mouse away from the main summary box and onto the extra details*/
 .expanding_element:hover {
   height: 50px;
   visibility: visible;
+}
+
+.summary_box:hover {
+  background-color: #7d3780;
 }

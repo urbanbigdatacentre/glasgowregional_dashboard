@@ -33,16 +33,16 @@ output$region_name <- renderText({input$regionsmap_shape_click$id})
 #rounding % to 3 significant figures
 output$region_population <- renderText({format(latest_data$Value[latest_data$Region == input$regionsmap_shape_click$id & latest_data$Indicator == "Total Population"],big.mark=",")})
 output$region_jobs <- renderText({format(latest_data$Value[latest_data$Region == input$regionsmap_shape_click$id & latest_data$Indicator == "Total Jobs"], big.mark=",")})
-output$region_GVAworked <- renderText({round(latest_data$Value[latest_data$Region == input$regionsmap_shape_click$id & latest_data$Indicator == "GVA per hour worked (£)"],2)})
+output$region_GVAworked <- renderText({paste0("£",round(latest_data$Value[latest_data$Region == input$regionsmap_shape_click$id & latest_data$Indicator == "GVA per hour worked (£)"],2))})
 output$region_enterprises <- renderText({round(latest_data$Value[latest_data$Region == input$regionsmap_shape_click$id & latest_data$Indicator == "Number of Enterprises per 10,000 population (16-64)"],2)})
-output$region_serviceexports <- renderText({round(latest_data$Value[latest_data$Region == input$regionsmap_shape_click$id & latest_data$Indicator == "Service Exports Per Job (£)"],2)})
+output$region_serviceexports <- renderText({paste0("£",round(latest_data$Value[latest_data$Region == input$regionsmap_shape_click$id & latest_data$Indicator == "Service Exports Per Job (£)"],2))})
 output$region_medianincome <- renderText({round(latest_data$Value[latest_data$Region == input$regionsmap_shape_click$id & latest_data$Indicator == "Residence-based Full-time Median Weekly Earnings"],2)})
-output$region_noqualification <- renderText({signif(latest_data$Value[latest_data$Region == input$regionsmap_shape_click$id & latest_data$Indicator == "Working-age population with no qualifications (%)"],3)})
-output$region_unemployed <- renderText({signif(latest_data$Value[latest_data$Region == input$regionsmap_shape_click$id & latest_data$Indicator == "Unemployment Rate 16-64 (%)"],3)})
-output$region_ecoinactive <- renderText({signif(latest_data$Value[latest_data$Region == input$regionsmap_shape_click$id & latest_data$Indicator == "Economic Inactivity Rate 16-64 (%)"],3)})
-output$region_claimcount <- renderText({signif(latest_data$Value[latest_data$Region == input$regionsmap_shape_click$id & latest_data$Indicator == "Claimants as a proportion of residents aged 16-64 (%)"],3)})
-output$region_childpoverty <- renderText({signif((latest_data$Value[latest_data$Region == input$regionsmap_shape_click$id & latest_data$Indicator == "% of children in poverty (after housing costs)"]),3)})
-output$region_emissions <- renderText({round(latest_data$Value[latest_data$Region == input$regionsmap_shape_click$id & latest_data$Indicator == "Emissions per capita (tonnes)"],2)})
+output$region_noqualification <- renderText({paste0(signif(latest_data$Value[latest_data$Region == input$regionsmap_shape_click$id & latest_data$Indicator == "Working-age population with no qualifications (%)"],3),"%")})
+output$region_unemployed <- renderText({paste0(signif(latest_data$Value[latest_data$Region == input$regionsmap_shape_click$id & latest_data$Indicator == "Unemployment Rate 16-64 (%)"],3),"%")})
+output$region_ecoinactive <- renderText({paste0(signif(latest_data$Value[latest_data$Region == input$regionsmap_shape_click$id & latest_data$Indicator == "Economic Inactivity Rate 16-64 (%)"],3),"%")})
+output$region_claimcount <- renderText({paste0(signif(latest_data$Value[latest_data$Region == input$regionsmap_shape_click$id & latest_data$Indicator == "Claimants as a proportion of residents aged 16-64 (%)"],3),"%")})
+output$region_childpoverty <- renderText({paste0(signif((latest_data$Value[latest_data$Region == input$regionsmap_shape_click$id & latest_data$Indicator == "% of children in poverty (after housing costs)"]),3),"%")})
+output$region_emissions <- renderText({paste0(round(latest_data$Value[latest_data$Region == input$regionsmap_shape_click$id & latest_data$Indicator == "Emissions per capita (tonnes)"],2)," tonnes")})
 
 #Hover to show extra info about data source, year of data being shown, and % changes over specific time periods
 #Total Population
@@ -52,6 +52,13 @@ output$pop_extra_info <- renderUI({
 output$pop_year <- renderUI({
   recent_year <- latest_data$Year[latest_data$Region == input$regionsmap_shape_click$id & latest_data$Indicator == "Total Population"]
   p(recent_year) })
+output$pop_year_change <- renderUI({
+  #one_change <- round(indicators_change$change_value[indicators_change$Region == input$regionsmap_shape_click$id & indicators_change$Indicator == "Total Population" & indicators_change$change == "1 year change"],2)
+  three_change <- round(indicators_change$change_value[indicators_change$Region == input$regionsmap_shape_click$id & indicators_change$Indicator == "Total Population" & indicators_change$change == "3 year change"],2)
+  five_change <-round(indicators_change$change_value[indicators_change$Region == input$regionsmap_shape_click$id & indicators_change$Indicator == "Total Population" & indicators_change$change == "5 year change"],2)
+  ten_change <- round(indicators_change$change_value[indicators_change$Region == input$regionsmap_shape_click$id & indicators_change$Indicator == "Total Population" & indicators_change$change == "10 year change"],2)
+  HTML(paste0("<p>",three_change,"% 3-year change","</p>","<br>","<p>",five_change,"% 5-year change","</p>","<br>","<p>",ten_change,"% 10-year change","</p>"))
+})
 
 #Total jobs
 output$jobs_extra_info <- renderUI({
@@ -61,6 +68,12 @@ output$jobs_extra_info <- renderUI({
 output$jobs_year <- renderUI({
   recent_year <- latest_data$Year[latest_data$Region == input$regionsmap_shape_click$id & latest_data$Indicator == "Total Jobs"]
   p(recent_year) })
+output$jobs_year_change <- renderUI({
+  #one_change <- round(indicators_change$change_value[indicators_change$Region == input$regionsmap_shape_click$id & indicators_change$Indicator == "Total Jobs" & indicators_change$change == "1 year change"],2)
+  three_change <- round(indicators_change$change_value[indicators_change$Region == input$regionsmap_shape_click$id & indicators_change$Indicator == "Total Jobs" & indicators_change$change == "3 year change"],2)
+  five_change<- round(indicators_change$change_value[indicators_change$Region == input$regionsmap_shape_click$id & indicators_change$Indicator == "Total Jobs" & indicators_change$change == "5 year change"],2)
+  HTML(paste0("<p>",three_change,"% 3-year change","</p>","<br>","<p>",five_change,"% 5-year change","</p>"))
+})
 
 #GVA worked
 output$GVAworked_extra_info <- renderUI({
@@ -70,6 +83,13 @@ output$GVAworked_extra_info <- renderUI({
 output$GVAworked_year <- renderUI({
   recent_year <- latest_data$Year[latest_data$Region == input$regionsmap_shape_click$id & latest_data$Indicator == "GVA per hour worked (£)"]
   p(recent_year) })
+output$GVAworked_year_change <- renderUI({
+  #one_change <- round(indicators_change$change_value[indicators_change$Region == input$regionsmap_shape_click$id & indicators_change$Indicator == "GVA per hour worked (£)" & indicators_change$change == "1 year change"],2)
+  three_change <- round(indicators_change$change_value[indicators_change$Region == input$regionsmap_shape_click$id & indicators_change$Indicator == "GVA per hour worked (£)" & indicators_change$change == "3 year change"],2)
+  five_change<- round(indicators_change$change_value[indicators_change$Region == input$regionsmap_shape_click$id & indicators_change$Indicator == "GVA per hour worked (£)" & indicators_change$change == "5 year change"],2)
+  ten_change<- round(indicators_change$change_value[indicators_change$Region == input$regionsmap_shape_click$id & indicators_change$Indicator == "GVA per hour worked (£)" & indicators_change$change == "10 year change"],2)
+  HTML(paste0("<p>",three_change,"% 3-year change","</p>","<br>","<p>",five_change,"% 5-year change","</p>","<br>","<p>",ten_change,"% 10-year change","</p>"))
+})
 
 #Enterprises
 output$enterprises_extra_info <- renderUI({
@@ -79,6 +99,13 @@ output$enterprises_extra_info <- renderUI({
 output$enterprises_year <- renderUI({
   recent_year <- latest_data$Year[latest_data$Region == input$regionsmap_shape_click$id & latest_data$Indicator == "Number of Enterprises per 10,000 population (16-64)"]
   p(recent_year) })
+output$enterprises_year_change <- renderUI({
+  one_change <- round(indicators_change$change_value[indicators_change$Region == input$regionsmap_shape_click$id & indicators_change$Indicator == "Number of Enterprises per 10,000 population (16-64)" & indicators_change$change == "1 year change"],2)
+  three_change <- round(indicators_change$change_value[indicators_change$Region == input$regionsmap_shape_click$id & indicators_change$Indicator == "Number of Enterprises per 10,000 population (16-64)" & indicators_change$change == "3 year change"],2)
+  five_change<- round(indicators_change$change_value[indicators_change$Region == input$regionsmap_shape_click$id & indicators_change$Indicator == "Number of Enterprises per 10,000 population (16-64)" & indicators_change$change == "5 year change"],2)
+  ten_change<- round(indicators_change$change_value[indicators_change$Region == input$regionsmap_shape_click$id & indicators_change$Indicator == "Number of Enterprises per 10,000 population (16-64)" & indicators_change$change == "10 year change"],2)
+  HTML(paste0("<p>",three_change,"% 3-year point change","</p>","<br>","<p>",five_change,"% 5-year point change","</p>","<br>","<p>",ten_change,"% 10-year point change","</p>"))
+})
 
 #Service exports
 output$serviceexports_extra_info <- renderUI({
@@ -86,8 +113,14 @@ output$serviceexports_extra_info <- renderUI({
   a(href=link,
     "Data Source") })
 output$serviceexports_year <- renderUI({
-  recent_year <- latest_data$Year[latest_data$Region == input$regionsmap_shape_click$id & latest_data$Indicator == "Number of Enterprises per 10,000 population (16-64)"]
+  recent_year <- latest_data$Year[latest_data$Region == input$regionsmap_shape_click$id & latest_data$Indicator == "Service Exports Per Job (£)"]
   p(recent_year) })
+#only one year for this - will there be more?
+#output$serviceexports_year_change <- renderUI({
+ # one_change <- round(indicators_change$change_value[indicators_change$Region == input$regionsmap_shape_click$id & indicators_change$Indicator == "Service Exports Per Job (£)" & indicators_change$change == "1 year change"],2)
+  #three_change <- round(indicators_change$change_value[indicators_change$Region == input$regionsmap_shape_click$id & indicators_change$Indicator == "Service Exports Per Job (£)" & indicators_change$change == "3 year change"],2)
+ # HTML(paste0("<p>",one_change,"% 1-year change","</p>","<br>","<p>",three_change,"% 3-year change","</p>"))
+#})
 
 #Median Income
 output$medianincome_extra_info <- renderUI({
@@ -97,6 +130,13 @@ output$medianincome_extra_info <- renderUI({
 output$medianincome_year <- renderUI({
   recent_year <- latest_data$Year[latest_data$Region == input$regionsmap_shape_click$id & latest_data$Indicator == "Residence-based Full-time Median Weekly Earnings"]
   p(recent_year) })
+output$medianincome_year_change <- renderUI({
+  #one_change <- round(indicators_change$change_value[indicators_change$Region == input$regionsmap_shape_click$id & indicators_change$Indicator == "Residence-based Full-time Median Weekly Earnings" & indicators_change$change == "1 year change"],2)
+  three_change <- round(indicators_change$change_value[indicators_change$Region == input$regionsmap_shape_click$id & indicators_change$Indicator == "Residence-based Full-time Median Weekly Earnings" & indicators_change$change == "3 year change"],2)
+  five_change <- round(indicators_change$change_value[indicators_change$Region == input$regionsmap_shape_click$id & indicators_change$Indicator == "Residence-based Full-time Median Weekly Earnings" & indicators_change$change == "5 year change"],2)
+  ten_change<- round(indicators_change$change_value[indicators_change$Region == input$regionsmap_shape_click$id & indicators_change$Indicator == "Residence-based Full-time Median Weekly Earnings" & indicators_change$change == "10 year change"],2)
+  HTML(paste0("<p>",three_change,"% 3-year change","</p>","<br>","<p>",five_change,"% 5-year change","</p>","<br>","<p>",ten_change,"% 10-year change","</p>"))
+})
 
 #Working age population with no qualification
 output$noqualification_extra_info <- renderUI({
@@ -106,6 +146,13 @@ output$noqualification_extra_info <- renderUI({
 output$noqualification_year <- renderUI({
   recent_year <- latest_data$Year[latest_data$Region == input$regionsmap_shape_click$id & latest_data$Indicator == "Working-age population with no qualifications (%)"]
   p(recent_year) })
+output$noqualification_year_change <- renderUI({
+  #one_change <- round(indicators_change$change_value[indicators_change$Region == input$regionsmap_shape_click$id & indicators_change$Indicator == "Working-age population with no qualifications (%)" & indicators_change$change == "1 year change"],2)
+  three_change <- round(indicators_change$change_value[indicators_change$Region == input$regionsmap_shape_click$id & indicators_change$Indicator == "Working-age population with no qualifications (%)" & indicators_change$change == "3 year change"],2)
+  five_change<- round(indicators_change$change_value[indicators_change$Region == input$regionsmap_shape_click$id & indicators_change$Indicator == "Working-age population with no qualifications (%)" & indicators_change$change == "5 year change"],2)
+  ten_change<- round(indicators_change$change_value[indicators_change$Region == input$regionsmap_shape_click$id & indicators_change$Indicator == "Working-age population with no qualifications (%)" & indicators_change$change == "10 year change"],2)
+  HTML(paste0("<p>",three_change,"% 3-year point change","</p>","<br>","<p>",five_change,"% 5-year point change","</p>","<br>","<p>",ten_change,"% 10-year point change","</p>"))
+})
 
 #Unemployed
 output$unemployed_extra_info <- renderUI({
@@ -115,6 +162,13 @@ output$unemployed_extra_info <- renderUI({
 output$unemployed_year <- renderUI({
   recent_year <- latest_data$Year[latest_data$Region == input$regionsmap_shape_click$id & latest_data$Indicator == "Unemployment Rate 16-64 (%)"]
   p(recent_year) })
+output$unemployed_year_change <- renderUI({
+ # one_change <- round(indicators_change$change_value[indicators_change$Region == input$regionsmap_shape_click$id & indicators_change$Indicator == "Unemployment Rate 16-64 (%)" & indicators_change$change == "1 year change"],2)
+  three_change <- round(indicators_change$change_value[indicators_change$Region == input$regionsmap_shape_click$id & indicators_change$Indicator == "Unemployment Rate 16-64 (%)" & indicators_change$change == "3 year change"],2)
+  five_change <- round(indicators_change$change_value[indicators_change$Region == input$regionsmap_shape_click$id & indicators_change$Indicator == "Unemployment Rate 16-64 (%)" & indicators_change$change == "5 year change"],2)
+  ten_change <- round(indicators_change$change_value[indicators_change$Region == input$regionsmap_shape_click$id & indicators_change$Indicator == "Unemployment Rate 16-64 (%)" & indicators_change$change == "10 year change"],2)
+  HTML(paste0("<p>",three_change,"% 3-year point change","</p>","<br>","<p>",five_change,"% 5-year point change","</p>","<br>","<p>",ten_change,"% 10-year point change","</p>"))
+})
 
 #Economic Inactivity
 output$ecoinactive_extra_info <- renderUI({
@@ -124,6 +178,13 @@ output$ecoinactive_extra_info <- renderUI({
 output$ecoinactive_year <- renderUI({
   recent_year <- latest_data$Year[latest_data$Region == input$regionsmap_shape_click$id & latest_data$Indicator == "Economic Inactivity Rate 16-64 (%)"]
   p(recent_year) })
+output$ecoinactive_year_change <- renderUI({
+ # one_change <- round(indicators_change$change_value[indicators_change$Region == input$regionsmap_shape_click$id & indicators_change$Indicator == "Economic Inactivity Rate 16-64 (%)" & indicators_change$change == "1 year change"],2)
+  three_change <- round(indicators_change$change_value[indicators_change$Region == input$regionsmap_shape_click$id & indicators_change$Indicator == "Economic Inactivity Rate 16-64 (%)" & indicators_change$change == "3 year change"],2)
+  five_change<- round(indicators_change$change_value[indicators_change$Region == input$regionsmap_shape_click$id & indicators_change$Indicator == "Economic Inactivity Rate 16-64 (%)" & indicators_change$change == "5 year change"],2)
+  ten_change<- round(indicators_change$change_value[indicators_change$Region == input$regionsmap_shape_click$id & indicators_change$Indicator == "Economic Inactivity Rate 16-64 (%)" & indicators_change$change == "10 year change"],2)
+  HTML(paste0("<p>",three_change,"% 3-year point change","</p>","<br>","<p>",five_change,"% 5-year point change","</p>","<br>","<p>",ten_change,"% 10-year point change","</p>"))
+})
 
 #Claimant count
 output$claimcount_extra_info <- renderUI({
@@ -133,6 +194,13 @@ output$claimcount_extra_info <- renderUI({
 output$claimcount_year <- renderUI({
   recent_year <- latest_data$Year[latest_data$Region == input$regionsmap_shape_click$id & latest_data$Indicator == "Claimants as a proportion of residents aged 16-64 (%)"]
   p(recent_year) })
+output$claimcount_year_change <- renderUI({
+ # one_change <- round(indicators_change$change_value[indicators_change$Region == input$regionsmap_shape_click$id & indicators_change$Indicator == "Claimants as a proportion of residents aged 16-64 (%)" & indicators_change$change == "1 year change"],2)
+  three_change <- round(indicators_change$change_value[indicators_change$Region == input$regionsmap_shape_click$id & indicators_change$Indicator == "Claimants as a proportion of residents aged 16-64 (%)" & indicators_change$change == "3 year change"],2)
+  five_change <- round(indicators_change$change_value[indicators_change$Region == input$regionsmap_shape_click$id & indicators_change$Indicator == "Claimants as a proportion of residents aged 16-64 (%)" & indicators_change$change == "5 year change"],2)
+  ten_change <-round(indicators_change$change_value[indicators_change$Region == input$regionsmap_shape_click$id & indicators_change$Indicator == "Claimants as a proportion of residents aged 16-64 (%)" & indicators_change$change == "10 year change"],2)
+  HTML(paste0("<p>",three_change,"% 3-year point change","</p>","<br>","<p>",five_change,"% 5-year point change","</p>","<br>","<p>",ten_change,"% 10-year point change","</p>"))
+})
 
 #Child poverty
 output$childpoverty_extra_info <- renderUI({
@@ -142,6 +210,11 @@ output$childpoverty_extra_info <- renderUI({
 output$childpoverty_year <- renderUI({
   recent_year <- latest_data$Year[latest_data$Region == input$regionsmap_shape_click$id & latest_data$Indicator == "% of children in poverty (after housing costs)"]
   p(recent_year) })
+output$childpoverty_year_change <- renderUI({
+  one_change <- round(indicators_change$change_value[indicators_change$Region == input$regionsmap_shape_click$id & indicators_change$Indicator == "% of children in poverty (after housing costs)" & indicators_change$change == "1 year change"],2)
+  three_change <- round(indicators_change$change_value[indicators_change$Region == input$regionsmap_shape_click$id & indicators_change$Indicator == "% of children in poverty (after housing costs)" & indicators_change$change == "3 year change"],2)
+  HTML(paste0("<p>",one_change,"% 1-year point change","</p>","<br>","<p>",three_change,"% 3-year point change","</p>"))
+})
 
 #Emissions
 output$emissions_extra_info <- renderUI({
@@ -151,7 +224,13 @@ output$emissions_extra_info <- renderUI({
 output$emissions_year <- renderUI({
   recent_year <- latest_data$Year[latest_data$Region == input$regionsmap_shape_click$id & latest_data$Indicator == "Emissions per capita (tonnes)"]
   p(recent_year) })
-
+output$emissions_year_change <- renderUI({
+ # one_change <- round(indicators_change$change_value[indicators_change$Region == input$regionsmap_shape_click$id & indicators_change$Indicator == "Emissions per capita (tonnes)" & indicators_change$change == "1 year change"],2)
+  three_change <- round(indicators_change$change_value[indicators_change$Region == input$regionsmap_shape_click$id & indicators_change$Indicator == "Emissions per capita (tonnes)" & indicators_change$change == "3 year change"],2)
+  five_change<- round(indicators_change$change_value[indicators_change$Region == input$regionsmap_shape_click$id & indicators_change$Indicator == "Emissions per capita (tonnes)" & indicators_change$change == "5 year change"],2)
+  ten_change <- round(indicators_change$change_value[indicators_change$Region == input$regionsmap_shape_click$id & indicators_change$Indicator == "Emissions per capita (tonnes)" & indicators_change$change == "10 year change"],2)
+  HTML(paste0("<p>",three_change,"% 3-year point change","</p>","<br>","<p>",five_change,"% 5-year point change","</p>","<br>","<p>",ten_change,"% 10-year point change","</p>"))
+})
 
 #downloading of the data - first go # works, but doesn't download in the right format
 # output$single_area_summary_md <- downloadHandler(
@@ -196,8 +275,47 @@ output$single_area_summary_md <- downloadHandler(
 ##############################################
 #Glasgow City Regions comparison page
 ##############################################
-#output$data_source <- renderText({ifelse(source_data$Source[source_data$Indicator == input$economic_indicator_choice] != "",source_data$Source[source_data$Indicator == input$economic_indicator_choice],"")})
+output$glasgow_map_title <- renderText({ input$economic_indicator_choice })
 
+
+
+
+
+#subset data to indicator selected
+selected_indicator_data <- reactive ({
+  #trend <- 
+    indicators_data %>%
+    subset(Indicator == input$economic_indicator_choice &
+          Region %in% input$location_choice) #|
+         # Region == input$comparator_choice)
+})
+
+#for jobs will need to subset twice for % of jobs by sector
+
+#set tooltip label
+tooltip_trend <- reactive({
+  paste0(selected_indicator_data()$Region,"<br>",selected_indicator_data()$Value,"<br>",selected_indicator_data()$Year)
+})
+
+output$glasgow_timetrend_title <- renderText({ paste0("Historical data for ",input$economic_indicator_choice) })
+output$time_trend_glasgow <- renderPlotly({
+  plot_ly(data=selected_indicator_data(), x=~Year,  y = ~Value,
+          color = ~Region,
+          text=tooltip_trend(), 
+          hoverinfo="text"#, 
+        # height = 600 
+         ) %>% 
+    add_trace(type = 'scatter', mode = 'lines+markers', marker = list(size = 8),
+              symbol = ~Region#, symbols = symbols_trend
+                            ) %>%
+    layout(
+      #title = paste0("Time trend for ",input$economic_indicator_choice),
+      xaxis = list(title = "Year"),
+      yaxis= list(title = "Value"), #selected_indicator_data()$Measure)
+      showlegend = TRUE
+    ) %>%
+    config(displayModeBar = FALSE, displaylogo = F) # taking out the plotly functions bar up top
+})
 
 
 } # server closing bracket

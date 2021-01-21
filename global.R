@@ -11,6 +11,7 @@ library(rgdal) #for reading in shapefile
 library(sf)
 library(rmarkdown)
 library(knitr)
+library(plotly) #for interactive graphs
 
 ###### Main datasets
 glasgow_map_regions <- readRDS("data/glasgow_regions.rds") # shapefile for glasgow city region areas
