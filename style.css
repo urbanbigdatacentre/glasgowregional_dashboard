@@ -1,0 +1,136 @@
+/* CSS styles used in the shiny app */
+
+/*#body {background-color:black;} */
+body {
+  background-image:linear-gradient(black,#595065);
+  margin: 0;
+  }
+  
+html{
+  min-height:100%;
+}
+
+.header-title {
+  color: white; 
+  font-family: 'Franklin Gothic Medium', 'Franklin Gothic', 'ITC Franklin Gothic', Arial, sans-serif;   font-size: 45px; 
+  line-height: 22px;
+  /** opacity: 0.5; */
+}
+
+.tabs {
+  display: flex;
+  align-items: center;
+  margin: auto;
+}
+/*header formatting*/
+.container {
+   /*background:url("glasgow_faded.png"); 
+  background-repeat: no-repeat;
+   /* background-attachment: fixed; */
+  background-position: left;
+  text-align: left;
+  line-height: 30px;
+ /* width: 100%; */
+  height: 150px;
+  margin: 0;
+  vertical-align: middle;
+}
+/*making background of leaflet image transparent */
+.leaflet-container {
+    background-color: inherit; /*fallback color */
+    background-color:rgba(255,0,0,0.0);
+}
+
+/* chaging the font of UI elements*/
+#region_name {color: white;
+       font-size: 20px;
+       text-align: center;
+       font-weight: bold;
+        }
+        
+#intro_text {color: white;
+       font-size: 20px;
+       text-align: center;
+       font-weight: bold;
+        }
+
+/*single area summary boxes */
+.summary_box {
+  width:100px;
+ /* width:100%; 
+ height:80%;*/
+  height: 80%;
+  background-color:#282829;
+  margin-bottom: 5px; 
+  margin-top: 5px;
+  transition: 0.5s ease;
+  position: relative;
+  text-align: center;
+}
+
+.summary_value {
+       color: #f0c38e;
+       font-size: 18px;
+       font-weight: bold;
+}
+
+.summary_title {
+      padding-top: 3px;
+     /*  font-weight: bold; */
+       color: white;
+       font-size: 12px;
+       text-transform: uppercase;
+}
+
+/* Input boxes */
+.selector {
+  
+  color: white;
+}
+
+.bootstrap-select .dropdown-menu {
+	width: 100%;
+	white-space:normal;
+}
+
+.expanding_element {
+  visibility: hidden;
+  color: white;
+  line-height:10px;
+  font-size: 10px;
+    width:100px;
+ /* width:100%; 
+ height:80%;*/
+  background-color:#282829;
+  /* height: 80%; */
+  margin-bottom: 5px; 
+  margin-top: -0.5em;
+  padding: 1px;
+  position: relative;
+  text-align: center;
+  transition: all .5s ease-in-out;
+  height: 0;
+}
+
+/*highlight summary box when hovering iver it using colour change */
+/*.summary_box:hover {
+  transform: scale(2);
+  background-color: black;
+} */
+
+/* expand extra details box when hovering over summary box */
+.summary_box:hover + .expanding_element {
+    height: 50px;
+    visibility: visible;
+}
+
+.expanding_element:hover + .summary_box {
+  transform: scale(2);
+  background-color: black;
+}
+
+/*keep details showing even when moving the mouse away from the main summary box and onto the extra details*/
+.expanding_element:hover {
+  height: 50px;
+  visibility: visible;
+}
