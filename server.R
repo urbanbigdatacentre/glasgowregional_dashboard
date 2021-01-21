@@ -275,29 +275,46 @@ output$single_area_summary_md <- downloadHandler(
 ##############################################
 #Glasgow City Regions comparison page
 ##############################################
-output$glasgow_map_title <- renderText({ input$economic_indicator_choice })
-
-
-
-
-
 #subset data to indicator selected
 selected_indicator_data <- reactive ({
   #trend <- 
-    indicators_data %>%
+  indicators_data %>%
     subset(Indicator == input$economic_indicator_choice &
-          Region %in% input$location_choice) #|
-         # Region == input$comparator_choice)
+             Region %in% input$location_choice) #|
+  # Region == input$comparator_choice)
+})
+
+selected_indicator_data_year <- reactive ({
+  #trend <- 
+  latest_data %>%
+    subset(Indicator == input$economic_indicator_choice &
+             Region %in% input$location_choice) #|
+  # Region == input$comparator_choice)
 })
 
 #for jobs will need to subset twice for % of jobs by sector
 
+########### Map #####################
+#map title
+output$glasgow_map_title <- renderText({ input$economic_indicator_choice })
+#set tooltip label
+
+#map
+
+########### Summary Table ###################
+#table title
+
+#table
+
+
+###########Time trend graph #######################
+#trend title
+output$glasgow_timetrend_title <- renderText({ paste0("Historical data for ",input$economic_indicator_choice) })
 #set tooltip label
 tooltip_trend <- reactive({
   paste0(selected_indicator_data()$Region,"<br>",selected_indicator_data()$Value,"<br>",selected_indicator_data()$Year)
 })
-
-output$glasgow_timetrend_title <- renderText({ paste0("Historical data for ",input$economic_indicator_choice) })
+#trend graph
 output$time_trend_glasgow <- renderPlotly({
   plot_ly(data=selected_indicator_data(), x=~Year,  y = ~Value,
           color = ~Region,
@@ -310,12 +327,34 @@ output$time_trend_glasgow <- renderPlotly({
                             ) %>%
     layout(
       #title = paste0("Time trend for ",input$economic_indicator_choice),
-      xaxis = list(title = "Year"),
-      yaxis= list(title = "Value"), #selected_indicator_data()$Measure)
+      xaxis = list(title = "Year", color='white',tickcolor='white'),
+      yaxis = list(title = "Value", color='white',tickcolor='white'),
+      legend = list(font = list(color ='white')),
+      plot_bgcolor='rgba(0, 0, 0, 0)',
+      paper_bgcolor='rgba(0, 0, 0, 0.2)',
+      fig_bgcolor='rgba(0, 0, 0, 0)',#selected_indicator_data()$Measure)
       showlegend = TRUE
     ) %>%
     config(displayModeBar = FALSE, displaylogo = F) # taking out the plotly functions bar up top
 })
 
+############## Bar Graph #########
+#bar graph title
+output$glasgow_bar_title <- renderText({ paste0(input$economic_indicator_choice, " compared across regions") })
+#tooltip text
 
+#bar graph
+output$rank_plot <- renderPlotly({
+  plot_ly(data = selected_indicator_data_year(), x = ~Region, y = ~Value, type='bar', marker = list(color='#E9BD43')) %>%  #,text=tooltip_bar, hoverinfo="text",
+                                    #  marker = list(color = ~color_pal)
+                  #for comaparator
+  #add_trace(x = ~areaname, y = ~comp_value, name = ~unique(comp_name), type = 'scatter', mode = 'lines',
+   #         line = list(color = '#FF0000'), showlegend = FALSE, hoverinfo="skip") %>%
+  layout(xaxis = list(title="Regions", color='white',tickcolor='white'),
+         yaxis = list(title="Value", color='white',tickcolor='white'),
+         plot_bgcolor='rgba(0, 0, 0, 0)',
+         paper_bgcolor='rgba(0, 0, 0, 0.2)',
+         fig_bgcolor='rgba(0, 0, 0, 0)') %>%
+    config(displayModeBar = FALSE, displaylogo = F) # taking out the plotly functions bar up top
+                          })
 } # server closing bracket

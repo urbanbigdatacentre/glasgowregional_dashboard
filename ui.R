@@ -127,7 +127,7 @@ tagList( #needed for shinyjs
              #########################################################
              
              tabPanel(title = "Compare Glasgow City Regions", icon = icon("balance-scale-left"),
-                      wellPanel(fluidRow(
+                      wellPanel(class= "subheader", fluidRow(
                         column(4,div(class="selector",p(tags$b("1. Select an indicator of interest")),
                                    selectInput("economic_indicator_choice", label = NULL, choices=indicators_cleaned,
                                                selected = NULL))
@@ -155,7 +155,9 @@ tagList( #needed for shinyjs
                                ), # column bracket
                         column(6, offset=1, div(class="graph_title",
                                      textOutput("glasgow_timetrend_title")),
-                               plotlyOutput("time_trend_glasgow")
+                               plotlyOutput("time_trend_glasgow"),
+                               div(class="graph_title",textOutput("glasgow_bar_title")),
+                               plotlyOutput("rank_plot")
                                )) # row bracket
                     #  fluidRow(
                      #   column(4,

@@ -143,3 +143,7 @@ html{
 .summary_box:hover {
   background-color: #7d3780;
 }
+
+.subheader {
+  background-color: #7d3778;
+}
