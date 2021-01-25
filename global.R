@@ -8,12 +8,14 @@ library(tidyverse) #for manipulating data
 library(leaflet) #for drawing graph
 library(sp) # mnipulating spatial data
 library(rgdal) #for reading in shapefile
-library(sf)
+library(sf) # for working with shapefiles
 library(rmarkdown)
 library(knitr)
 library(plotly) #for interactive graphs
 library(DT) # to output summary table
 library(RColorBrewer) # for seeting colour scales
+library(raster)
+#library(rgeos)
 
 ###### Main datasets
 glasgow_map_regions <- readRDS("data/glasgow_regions.rds") # shapefile for glasgow city region areas
@@ -28,11 +30,31 @@ indicators_data <- readRDS("data/indicators_data.rds") # read in indicators data
 most_recent_years <- indicators_data %>% group_by(Indicator,Region) %>% summarise(recent_year = max(Year), Years_available = n())
 #join latest years with original table to get value for that year
 latest_data <- inner_join(most_recent_years,indicators_data, by = c("Region","Indicator","recent_year"="Year")) %>% rename(Year = recent_year)
+
+#merge shapefile and data
+map_data <- merge(latest_data,glasgow_map_regions,by.x="Region", by.y ="lad19nm")
+#transform back into shapefile
+#coordinates(map_data)=~long+lat
+#proj4string(map_data)<- CRS()
+#map_data_shp<-spTransform(map_data,CRS("+proj=longlat +datum=WGS84"))
+xy <- map_data[,c("lat","long")]
+
+map_data_sp <- SpatialPointsDataFrame(coords = xy, data = map_data,
+                                     proj4string = CRS(proj4string(glasgow_map_regions)))
+#map_data_sp_2 <- raster::extract(glasgow_map_regions,
+ #               map_data_sp,
+  #              sp=TRUE)
+
+map_data_shp <- st_as_sf(map_data, coords = c("long","lat"), crs='+proj=longlat +datum=WGS84')
+#map_data_sf <- SpatialPointsDataFrame(coords = map_data[,c("long","lat")], data = map_data,
+ #                                     proj4string = CRS('+proj=longlat +datum=WGS84'))
+pal <- colorNumeric("Blues",domain = map_data$Value)
+
 #get unique list for data sources
 source_data <- unique(indicators_data[,c('Indicator','Source')])
 #calculate % changes for 1 year, 3, 5 and 10 year periods where appropriate
 change_data <- inner_join(indicators_data, most_recent_years, by = c("Region","Indicator")) %>% mutate_at(vars(Year,recent_year), ~as.numeric(.))
-change_data <- change_data %>% mutate(year_diff = recent_year - Year) %>% select(-Source)
+change_data <- change_data %>% mutate(year_diff = recent_year - Year) %>% dplyr::select(-Source)
 
 latest_one_year <- change_data %>% filter(Years_available>1 & (year_diff==0|year_diff==1)) %>% arrange(Region,Indicator,Year) %>% group_by(Indicator,Region) %>% summarise(change = "1 year change", change_value = ifelse(grepl("%|[A-Z] : |\\([a-z|0-9].+\\)",Indicator)==TRUE, Value - lag(Value),(Value - lag(Value))/lag(Value)*100))
 latest_three_year <- change_data %>% filter(Years_available>3 & (year_diff==0|year_diff==3)) %>% arrange(Region,Indicator,Year) %>% group_by(Indicator,Region) %>% summarise(change = "3 year change", change_value = ifelse(grepl("%|[A-Z] : |\\([a-z|0-9].+\\)",Indicator)==TRUE,Value - lag(Value),(Value - lag(Value))/lag(Value)*100))

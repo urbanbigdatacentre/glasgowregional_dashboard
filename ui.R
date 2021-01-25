@@ -155,12 +155,15 @@ tagList( #needed for shinyjs
                       )
                       )),
                       fluidRow(
+                        div(id="intro_page2_text", 
+                                br(),br(),p("Please select at least two areas to compare")),
+                        hidden(div(id="glasgow_areas_comparison",
                         #Leaflet map to show areas
                         column(7,div(class="graph_title",
-                                     textOutput("glasgow_map_title")),
+                                     textOutput("glasgow_map_title")), br(),
                                leafletOutput("glasgow_map"),
-                               div(class="graph_title",
-                                   textOutput("glasgow_timetrend_title")),
+                              # div(class="graph_title",
+                               #    textOutput("glasgow_timetrend_title")),
                                plotlyOutput("time_trend_glasgow")
                                ), # column bracket
                         column(5, #offset=1, 
@@ -170,8 +173,8 @@ tagList( #needed for shinyjs
                              # conditionalPanel(condition="input.economic_indicator_choice == 'Total Jobs' & input.jobs_choice != character(0)",
                               #                 plotlyOutput("jobs_by_sector")),
                               br(), br(),DTOutput('glasgow_summary_table'), br(), br(),
-                             div(class="download_button",downloadButton("glasgow_regions_download", 'Download comparison data', class = "down")) 
-                               )) # row bracket
+                             div(class="button",downloadButton("glasgow_regions_download", 'Download comparison data', class = "down")) 
+                               )))) # row bracket
                     #  fluidRow(
                      #   column(4,
                       #         )

@@ -294,19 +294,26 @@ comparator_data <- reactive({
 })
 
 selected_indicator_data_year <- reactive ({
-  latest_data %>% subset(Indicator %in% input$economic_indicator_choice &
+  latest_data_filtered <- latest_data %>% subset(Indicator %in% input$economic_indicator_choice &
                            Region %in% input$glasgow_region_choice) %>% mutate(Comparator = comparator_data()$Region, Comp_Value = comparator_data()$Value) 
-  #left_join(latest_indicator_data(),comparator_data(), by = c("Year","Indicator")) %>% arrange(desc(Value))
+  latest_data_sorted <- latest_data_filtered[order(match(latest_data_filtered$Region,selected_areas()$lad19nm)),]  
+  return(latest_data_sorted)
 })
 
 observeEvent(input$glasgow_region_choice,{
-  print(region_order())
+  shinyjs::hide(id="intro_page2_text")
+  shinyjs::show(id="glasgow_areas_comparison")
 })
 
 selected_areas <- reactive ({
   glasgow_map_regions %>%
     subset(lad19nm %in% input$glasgow_region_choice)
 })
+
+#bins <- reactive({
+ # levels(cut(selected_indicator_data_year()$Value, seq(from = min(selected_indicator_data_year()$Value), to = max(selected_indicator_data_year()$Value), length.out=9)))
+  # c(seq(min(selected_indicator_data_year()$Value),max(selected_indicator_data_year()$Value),length.out=9))
+#})
 
 #for jobs will need to subset twice for % of jobs by sector
 selected_jobs_sector_latest <- reactive ({
@@ -350,29 +357,107 @@ updateSelectizeInput(session,"comparator_choice", label = NULL, choices=comparat
 
 ########### Map #####################
 #map title
-output$glasgow_map_title <- renderText({ input$economic_indicator_choice })
+output$glasgow_map_title <- renderText({ unique(paste0("Latest data available: ", latest_data$Year[latest_data$Indicator == input$economic_indicator_choice])) })
 
 #set tooltip label
 
-observe({
-  qpal <- colorQuantile("PuOr",selected_indicator_data_year()$Region,n=nrow(selected_indicator_data_year()$Region))
-})
+#observe({
+ # qpal <- colorQuantile("PuOr",selected_indicator_data_year()$Region,n=nrow(selected_indicator_data_year()$Region))
+#})
 #map
+#output$glasgow_map <- renderLeaflet({
+ # leaflet() %>%
+  #  addTiles() %>%
+   # setView(lat=55.8, lng=-4.2, zoom = 10)
+#}) 
+
+#map_selected_data <- reactive({
+ # map_data_shp %>%
+  #  subset(Indicator %in% input$economic_indicator_choice &
+   #          Region %in% input$glasgow_region_choice)
+    
+#})
+
+# observe({
+#   #qpal <- colorQuantile("PuOr", map_selected_data()$Value, n=8, na.color = "white")
+#   
+#   pal <- colorNumeric("Blues",domain = map_data$Value)
+#   
+#   leafletProxy("glasgow_map", data=map_selected_data()) %>% 
+#     addTiles() %>% clearShapes() %>% 
+#     clearControls() %>% addPolygons(data=map_selected_data(),
+#                                     lng = ~long,
+#                                     lat= ~lat,
+#                                     stroke = TRUE, color = "#444444",
+#                                               weight = 1,
+#                                               smoothFactor = 0.5,
+#                                 #opacity = 1.0,
+#                                               fillOpacity = 0.5,
+#                                               fillColor = ~ pal(Value),
+#                                               highlightOptions = highlightOptions(color = "white",
+#                                               weight = 2,
+#                                               bringToFront = TRUE),
+#                                               layerId =~Region,
+#                                               #options = pathOptions(pane= "highlight", clickable=TRUE), 
+#                                               label=~Region)
+#     
+#   
+# })
+# 
+# map_plot <- reactive({ if (nrow(selected_areas()) == 1) {
+#   leaflet(data=selected_areas(),options=leafletOptions(zoomControl = FALSE)) %>% addProviderTiles(providers$Stadia.AlidadeSmoothDark) %>% addPolygons(stroke = FALSE, weight = 1,
+#                                                                                                                                                       smoothFactor = 0.5,
+#                                                                                                                                                       fillOpacity = 0.5,
+#                                                                                                                                                       color = '#E9BD43',
+#                                                                                                                                                       highlightOptions = highlightOptions(color = "white",
+#                                                                                                                                                                                           weight = 2,
+#                                                                                                                                                                                           bringToFront = TRUE),
+#                                                                                                                                                       layerId =~lad19nm,
+#                                                                                                                                                       label=~lad19nm) 
+# } else if (nrow(selected_areas())>1) {
+#   leaflet(data=selected_areas(),options=leafletOptions(zoomControl = FALSE)) %>% addProviderTiles(providers$Stadia.AlidadeSmoothDark) %>% 
+#     addPolygons(stroke = FALSE, weight = 1,
+#                 smoothFactor = 0.5,
+#                 fillOpacity = 0.5,
+#                 color = ~colorQuantile("PuOr", selected_indicator_data_year()$Value)(selected_indicator_data_year()$Value),
+#                 highlightOptions = highlightOptions(color = "white",
+#                                                     weight = 2,
+#                                                     bringToFront = TRUE),
+#                 layerId =~lad19nm,
+#                 label=~lad19nm)
+# }
+# })
+
 output$glasgow_map <- renderLeaflet({
-  req(nrow(selected_areas()) > 0)
-  leaflet(data=selected_areas(), options=leafletOptions(zoomControl = FALSE)) %>% addTiles() %>% addPolygons(stroke = TRUE, color = "#444444",
-                                                                                                 weight = 1,
-                                                                                                 smoothFactor = 0.5,
-                                                                                                 #opacity = 1.0,
-                                                                                                 fillOpacity = 0.5,
-                                                                                                 fillColor = ~ qpal(selected_indicator_data_year()$Region),
-                                                                                                 highlightOptions = highlightOptions(color = "white",
-                                                                                                                                     weight = 2,
-                                                                                                                                     bringToFront = TRUE),
-                                                                                                 layerId =~lad19nm,
-                                                                                                 #options = pathOptions(pane= "highlight", clickable=TRUE), 
-                                                                                                 label=~lad19nm)
+   req(nrow(selected_areas()) > 1)
+   leaflet(data=selected_areas(),options=leafletOptions(zoomControl = FALSE)) %>% addTiles() %>% #addProviderTiles(providers$Stadia.AlidadeSmoothDark) %>% 
+              addPolygons(stroke = FALSE, weight = 1,
+                smoothFactor = 0.5,
+                fillOpacity = 0.5,
+                color = ~colorQuantile("PuOr", selected_indicator_data_year()$Value)(selected_indicator_data_year()$Value),
+                highlightOptions = highlightOptions(color = "white",
+                                                    weight = 2,
+                                                    bringToFront = TRUE),
+                layerId =~lad19nm,
+               # label=~lad19nm) 
+               label=~paste(
+                 lad19nm," : ",
+                 selected_indicator_data_year()$Value))
 })
+   
+#   leaflet(data=selected_areas(), options=leafletOptions(zoomControl = FALSE)) %>% addTiles() %>% addPolygons(stroke = TRUE, color = "#444444",
+#                                                                                                  weight = 1,
+#                                                                                                  smoothFactor = 0.5,
+#                                                                                                  #opacity = 1.0,
+#                                                                                                  fillOpacity = 0.5,
+#                                                                                                  fillColor = ~ qpal(selected_indicator_data_year()$Region),
+#                                                                                                  highlightOptions = highlightOptions(color = "white",
+#                                                                                                                                      weight = 2,
+#                                                                                                                                      bringToFront = TRUE),
+#                                                                                                  layerId =~lad19nm,
+#                                                                                                  #options = pathOptions(pane= "highlight", clickable=TRUE), 
+#                                                                                                  label=~lad19nm)
+# })
 
 
 
@@ -440,8 +525,8 @@ region_order <- reactive({
 ############## Bar Graph #########
 #bar graph title
 output$glasgow_bar_title <- renderText({ 
-  req(nrow(selected_indicator_data_year()>0))
-  paste0(input$economic_indicator_choice, " compared across regions") })
+  #req(nrow(selected_indicator_data_year()>0))
+  paste0("Horizontal line represents ", input$comparator_choice, " as comparator") })
 #tooltip text
 
 #bar graph
@@ -450,7 +535,7 @@ output$rank_plot <- renderPlotly({
   plot_ly(data = selected_indicator_data_year())%>%  #,text=tooltip_bar, hoverinfo="text",
                   #for comaparator
   add_trace(x = ~Region, y = ~Comp_Value, name= ~unique(Comparator), type = 'scatter', mode = 'lines',
-           line = list(color = 'red'), showlegend = FALSE, hoverinfo="skip") %>%
+           line = list(color = '#7d3778'), showlegend = FALSE, hoverinfo="skip") %>%
   add_bars(x = ~reorder(Region,-Value), y = ~Value, marker = list(color='#E9BD43')) %>% 
    layout(annotations = list(),
      xaxis = list(title="", color='white',tickcolor='white',categoryorder="array",categoryarray = region_order(),showgrid=FALSE),

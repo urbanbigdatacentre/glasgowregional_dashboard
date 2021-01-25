@@ -62,6 +62,12 @@ html{
        font-weight: bold;
         }
 
+#intro_page2_text {color: white;
+       font-size: 20px;
+       text-align: center;
+       font-weight: bold;
+        }
+
 /*single area summary boxes */
 .summary_box {
   width:150%;
@@ -146,4 +152,14 @@ html{
 
 .subheader {
   background-color: #7d3778;
+}
+
+.graph_title {
+  color: white;
+       font-size: 16px;
+        font-weight: bold;
+}
+
+.button.disabled {
+  background-color: #E9BD43;
 }
