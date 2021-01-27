@@ -67,6 +67,12 @@ html{
        text-align: center;
        font-weight: bold;
         }
+        
+#intro_page3_text {color: white;
+       font-size: 20px;
+       text-align: center;
+       font-weight: bold;
+        }
 
 /*single area summary boxes */
 .summary_box {
@@ -86,7 +92,7 @@ html{
 
 .summary_value {
        color: #E9BD43;
-       font-size: 18px;
+       font-size: 20px;
        font-weight: bold;
 }
 
@@ -94,7 +100,7 @@ html{
       padding-top: 3px;
      /*  font-weight: bold; */
        color: white;
-       font-size: 12px;
+       font-size: 13px;
        text-transform: uppercase;
 }
 
@@ -118,6 +124,7 @@ html{
  /* width:100%; 
  height:80%;*/
   background-color:#7d3780;
+  font-size: 12px;
   /* height: 80%; */
   margin-bottom: 5px; 
   margin-top: -0.5em;
@@ -131,7 +138,7 @@ html{
 
 /* expand extra details box when hovering over summary box */
 .summary_box:hover + .expanding_element {
-    height: 50px;
+    height: 60px;
     visibility: visible;
 }
 
@@ -142,7 +149,7 @@ html{
 
 /*keep details showing even when moving the mouse away from the main summary box and onto the extra details*/
 .expanding_element:hover {
-  height: 50px;
+  height: 60px;
   visibility: visible;
 }
 
@@ -160,6 +167,7 @@ html{
         font-weight: bold;
 }
 
-.button.disabled {
-  background-color: #E9BD43;
+.button {
+  /*background-color: #E9BD43;
+  color: #E9BD43; */
 }

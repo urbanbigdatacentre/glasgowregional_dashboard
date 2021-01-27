@@ -15,10 +15,12 @@ library(plotly) #for interactive graphs
 library(DT) # to output summary table
 library(RColorBrewer) # for seeting colour scales
 library(raster)
+library(shinyBS) # for modals
 #library(rgeos)
 
 ###### Main datasets
 glasgow_map_regions <- readRDS("data/glasgow_regions.rds") # shapefile for glasgow city region areas
+uk_map_regions <- readRDS("data/uk_regions.rds")
 indicators_data <- readRDS("data/indicators_data.rds") # read in indicators data
 #indicator_definitions <- readRDS("data/indicator_definitions.rds") #read in definitions for indicators
 
@@ -30,25 +32,6 @@ indicators_data <- readRDS("data/indicators_data.rds") # read in indicators data
 most_recent_years <- indicators_data %>% group_by(Indicator,Region) %>% summarise(recent_year = max(Year), Years_available = n())
 #join latest years with original table to get value for that year
 latest_data <- inner_join(most_recent_years,indicators_data, by = c("Region","Indicator","recent_year"="Year")) %>% rename(Year = recent_year)
-
-#merge shapefile and data
-map_data <- merge(latest_data,glasgow_map_regions,by.x="Region", by.y ="lad19nm")
-#transform back into shapefile
-#coordinates(map_data)=~long+lat
-#proj4string(map_data)<- CRS()
-#map_data_shp<-spTransform(map_data,CRS("+proj=longlat +datum=WGS84"))
-xy <- map_data[,c("lat","long")]
-
-map_data_sp <- SpatialPointsDataFrame(coords = xy, data = map_data,
-                                     proj4string = CRS(proj4string(glasgow_map_regions)))
-#map_data_sp_2 <- raster::extract(glasgow_map_regions,
- #               map_data_sp,
-  #              sp=TRUE)
-
-map_data_shp <- st_as_sf(map_data, coords = c("long","lat"), crs='+proj=longlat +datum=WGS84')
-#map_data_sf <- SpatialPointsDataFrame(coords = map_data[,c("long","lat")], data = map_data,
- #                                     proj4string = CRS('+proj=longlat +datum=WGS84'))
-pal <- colorNumeric("Blues",domain = map_data$Value)
 
 #get unique list for data sources
 source_data <- unique(indicators_data[,c('Indicator','Source')])
@@ -62,9 +45,6 @@ latest_five_year <- change_data %>% filter(Years_available>5 & (year_diff==0|yea
 latest_ten_year <- change_data %>% filter(Years_available>10 & (year_diff==0|year_diff==10)) %>% arrange(Region,Indicator,Year) %>% group_by(Indicator,Region) %>% summarise(change = "10 year change", change_value = ifelse(grepl("%|[A-Z] : |\\([a-z|0-9].+\\)",Indicator)==TRUE,Value - lag(Value),(Value - lag(Value))/lag(Value)*100))  
 indicators_change <- rbind(latest_one_year,latest_three_year,latest_five_year,latest_ten_year)
 indicators_change <- indicators_change %>% filter(!is.na(change_value))
-
-#merge shapefile and indicators data
-#indicators_map_data <- inner_join(glasgow_map_regions,latest_data, by=c("lad19nm","Region"))
 
 ####### Lists for the drop-down menus    
 glasgow_regions <- c("East Dunbartonshire", "East Renfrewshire", "Glasgow City", "Inverclyde",
