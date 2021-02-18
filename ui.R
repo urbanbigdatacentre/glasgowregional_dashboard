@@ -69,7 +69,7 @@ tagList( #needed for shinyjs
                                             div(class= "summary_title",p("Service Exports/Job")),
                                                                       div(uiOutput("serviceexports_year"),style = "line-height:1px; font-size: 10px;"),
                                             div(class= "summary_value",textOutput("region_serviceexports"))),
-                                            div(class= "expanding_element",#uiOutput("serviceexports_year_change", style="line-height: 1px;"), br(),
+                                            div(class= "expanding_element",uiOutput("serviceexports_year_change", style="line-height: 1px;"), br(), br(),
                                                 uiOutput("serviceexports_extra_info"))),
                                         column(4,offset=2,div(class= "summary_box",
                                             div(class= "summary_title",p("Total Weekly Median Income")),
@@ -115,39 +115,31 @@ tagList( #needed for shinyjs
                                                 br(),uiOutput("emissions_extra_info")))),
                                         br(),br(),
                                         fluidRow(column(6,offset=3,
-                                          div(class="button",downloadButton("single_area_summary_md", 'Download this summary') 
+                                          downloadButton("single_area_summary_md", 'Download this summary', class="button") 
                                         )))
-                                 )) #hidden brackets
+                                 ) #hidden brackets
                                         ) # column bracket
-                             #   ) #conditionalPanel bracket
                       )# row bracket
                       ) #panel bracket
             ),  #tab bracket
              
 ########################################################
-#Compare Glasgow City Regions to each other tab
+#Compare Glasgow City Region LA's to each other tab
 #########################################################
              
-             tabPanel(title = "Compare Glasgow City Local Authorities", icon = icon("balance-scale-left"),
+             tabPanel(title = "Compare Glasgow City Local Authorities", icon = icon("balance-scale-left"), value = "glasgow_tab",
                       wellPanel(class= "subheader", fluidRow(
                         column(4,div(class="selector",p(tags$b("1. Select an indicator of interest")),
                                    selectizeInput("economic_indicator_choice", label = NULL, choices=indicators_cleaned,
                                                selected = NULL)),
-                               conditionalPanel(condition= "input.economic_indicator_choice == 'Total Jobs'",
-                               div(class="selector",
-                                   selectizeInput("jobs_choice", label = "Show for sector", choices = job_sectors, 
-                                                  selected = NULL, multiple=TRUE, 
-                                                  options = list(maxOptions = 1300, placeholder = "Showing all job sectors unless filtered")))
-                                                 ),
-                               actionButton("definition","Indicator definition"), br()
+
+                                                              actionButton("definition","Indicator definition", icon = icon("info"), color = "#E9BD43"), br()
                                ),
                         column(4,div(class="selector",p(tags$b("2. Select local authorities of interest")),
                                      selectizeInput("glasgow_region_choice", label = NULL,
                                                           choices = glasgow_regions, selected = character(0), multiple = TRUE,
                                                           options = list(maxOptions = 1300, 
                                                                          placeholder = "Select one or more local authorities of interest")))
-                                     #selectInput("location_choice", label = "Multiple areas may be chosen", choices=glasgow_regions,
-                                      #           selected = NULL, multiple=TRUE))
                                ),
                         column(4,div(class="selector",p(tags$b("3. Choose a comparator area")),
                                      selectizeInput("comparator_choice", label = NULL, choices=comparators,
@@ -160,42 +152,48 @@ tagList( #needed for shinyjs
                                 br(),br(),p("Please select at least two areas to compare")),
                         hidden(div(id="glasgow_areas_comparison",
                         #Leaflet map to show areas
-                        column(7,div(class="graph_title",
-                                     textOutput("glasgow_map_title")),
-                                br(),
+                        column(7,
+                               uiOutput("indicator_title"), br(),
+                              # conditionalPanel(condition="input.economic_indicator_choice=='Service Exports Per Job (£)'",
+                              #   uiOutput("notes"),br()),
                                leafletOutput("glasgow_map"),
-                              # div(class="graph_title",
-                               #    textOutput("glasgow_timetrend_title")),
+                               br(), br(),
+                               div(class="graph_title",textOutput("timeseries_title")),
                                plotlyOutput("time_trend_glasgow")
                                ), # column bracket
                         column(5, #offset=1, 
-                              # div(class="latest_figure",uiOutput("latest_figure")),
                                div(class="graph_title",textOutput("glasgow_bar_title")),
-                               plotlyOutput("rank_plot"),
-                             # conditionalPanel(condition="input.economic_indicator_choice == 'Total Jobs' & input.jobs_choice != character(0)",
-                              #                 plotlyOutput("jobs_by_sector")),
-                              br(), br(),DTOutput('glasgow_summary_table'), br(), br(),
-                             div(class="button",downloadButton("glasgow_regions_download", 'Download comparison data', class = "down")) 
+                               textOutput("glasgow_bar_subtitle"),
+                               br(),
+                               div(id="glasgow_bar_plot",plotlyOutput("rank_plot")),
+                               br(), br(),
+                               div(class="graph_title",textOutput("table_title")), br(),
+                               DTOutput('glasgow_summary_table'), br(), br(),
+                               div(class="graph_title",p("Download the data")),
+                              div(class= "download-button",downloadButton("glasgow_data_download","Download latest data (.csv)")),
+                              div(class= "download-button",downloadButton("glasgow_historical_data_download","Download historical data (.csv)")),
+                              div(class= "download-button",downloadButton("download_glasgow_map","Download map(.png)")),
+                              div(class= "download-button",downloadButton("LA_comparison_download", "Download report of data (.pdf)"))
                                )))) # row bracket
-                    #  fluidRow(
-                     #   column(4,
-                      #         )
-                     # ) #row bracket                                                                
                      ), # end of tab
 ########################################################
 #Compare UK City Regions to each other tab
 #########################################################             
-             tabPanel(title="Compare UK City Regions", icon=icon("globe-europe"),
+             tabPanel(title="Compare UK City Regions", icon=icon("globe-europe"), value = "UK_tab",
                       wellPanel(class= "subheader", fluidRow(
                         column(4,div(class="selector",p(tags$b("1. Select an indicator of interest")),
-                                     selectizeInput("uk_economic_indicator_choice", label = NULL, choices=indicators_cleaned,
+                                     selectizeInput("uk_economic_indicator_choice", label = NULL, choices= all_indicators,
                                                     selected = NULL)),
-                               conditionalPanel(condition= "input.economic_indicator_choice == 'Total Jobs'",
+                               conditionalPanel(condition= "input.uk_economic_indicator_choice == 'Jobs by Sector'",
                                                 div(class="selector",
                                                     selectizeInput("uk_jobs_choice", label = "Show for sector", choices = job_sectors, 
-                                                                   selected = NULL, multiple=TRUE, 
-                                                                   options = list(maxOptions = 1300, placeholder = "Showing all job sectors unless filtered")))
-                               )
+                                                                   options = list(maxOptions = 1300))),
+                                                radioGroupButtons(inputId = "job_measure_picker",
+                                                                   label = "Choose measure to view indicator by", 
+                                                                   choices = c("Count by sector"="count", "Percentage of total jobs"="perc"), selected="count",
+                                                                   checkIcon = list(yes = icon("ok",lib = "glyphicon")))
+                               ),
+                               actionButton("uk_definition","Indicator definition", icon = icon("info"), color = "#E9BD43"), br()
                         ),
                         column(4,div(class="selector",p(tags$b("2. Select UK city regions of interest")),
                                      selectizeInput("uk_region_choice", label = NULL,
@@ -216,19 +214,30 @@ tagList( #needed for shinyjs
                             br(),br(),p("Please select at least two areas to compare")),
                         hidden(div(id="uk_areas_comparison",
                                    #Leaflet map to show areas
-                                   column(7,div(class="graph_title",
+                                   column(7,
+                                          uiOutput("uk_indicator_title"), br(),
+                                          div(class="graph_title",
                                                 textOutput("uk_map_title")), br(),
                                           leafletOutput("uk_map"),
+                                          br(),br(),
+                                          div(class="graph_title",textOutput("uk_timeseries_title")),
                                           plotlyOutput("time_trend_uk")
                                    ), # column bracket
                                    column(5, #offset=1, 
-                                          # div(class="latest_figure",uiOutput("latest_figure")),
                                           div(class="graph_title",textOutput("uk_bar_title")),
+                                          textOutput("uk_bar_subtitle"),
+                                          br(),
                                           plotlyOutput("uk_rank_plot"),
                                           # conditionalPanel(condition="input.economic_indicator_choice == 'Total Jobs' & input.jobs_choice != character(0)",
                                           #                 plotlyOutput("jobs_by_sector")),
-                                          br(), br(),DTOutput('uk_summary_table'), br(), br(),
-                                          div(class="button",downloadButton("uk_regions_download", 'Download comparison data', class = "down")) 
+                                          br(), br(),
+                                          div(class="graph_title",textOutput("uk_table_title")), br(),
+                                          DTOutput('uk_summary_table'), br(), br(),
+                                          div(class="graph_title",p("Download the data")),
+                                          div(class= "download-button", downloadButton("uk_data_download","Download latest data (.csv)")),
+                                          div(class= "download-button", downloadButton("uk_historical_data_download","Download historical data (.csv)")),
+                                          div(class= "download-button", downloadButton("download_uk_map","Download map(.png)")),
+                                          div(class= "download-button", downloadButton("uk_comparison_download", "Download report of data (.pdf)"))
                                    ))))
              ), #end of tab
 tabPanel(class= "tabs",title="About", icon = icon("info-circle"),

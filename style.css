@@ -11,6 +11,11 @@ html{
   min-height:100%;
 }
 
+h2, h3 {
+    margin-top: .5em;
+    padding-top: 0;
+}
+
 .header-title {
   color: white; 
   font-family: 'Franklin Gothic Medium', 'Franklin Gothic', 'ITC Franklin Gothic', Arial, sans-serif;   font-size: 45px; 
@@ -168,6 +173,12 @@ html{
 }
 
 .button {
-  /*background-color: #E9BD43;
-  color: #E9BD43; */
+  background-color: #E9BD43;
 }
+
+.download-button{
+  color: yellow !impoartant;
+  float:left; 
+  padding-bottom: 10px; 
+  padding-right: 20px;
+  }

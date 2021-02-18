@@ -1,0 +1,40 @@
+---
+title: "**UK City Regions comparison**"
+date: "Downloaded on `r Sys.Date()`"
+output: pdf_document
+params: 
+  Indicator: NA
+  Bar_Data: NA
+  Comparator: NA
+  Time_Data: NA
+---
+```{r echo=FALSE}
+#libraries
+library(ggplot2)
+measure <- unique(params$Bar_Data$Measure)
+comp_value <- unique(params$Bar_Data$Comp_Value)
+```
+##**`r params$Indicator`** based on `r unique(latest_data$Year[latest_data$Indicator == params$Indicator])` data compares as follows when looking at the following city regions within the UK: 
+
+```{r echo=FALSE}
+kable(params$Bar_Data[,c("Region","Value","Measure")])
+```
+
+## City Regions compared to **`r params$Comparator`** with a value of `r comp_value`.
+
+```{r echo=FALSE}
+ggplot(data=params$Bar_Data) + 
+  geom_line(aes(x=Region,y=Comp_Value), stat="identity", group = 1, color = "#7d3778") +
+  geom_bar(aes(x=Region,y=Value), stat="identity", fill="#E9BD43") + 
+  labs(x="",y=measure) + theme_minimal()
+```
+
+\newpage
+
+## Historic data for `r params$Indicator` and local authorities selected
+
+```{r echo=FALSE}
+ggplot(data=params$Time_Data, aes(x=Year,y=Value)) +
+  geom_line(aes(color=Region), size=2.5) + scale_color_brewer(palette="Accent") + 
+  labs(x="",y=measure)+ theme_minimal()
+```

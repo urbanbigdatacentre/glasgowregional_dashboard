@@ -9,34 +9,39 @@ library(leaflet) #for drawing graph
 library(sp) # mnipulating spatial data
 library(rgdal) #for reading in shapefile
 library(sf) # for working with shapefiles
-library(rmarkdown)
-library(knitr)
+library(rmarkdown) #PDF report format
+library(knitr) #for genrating PDF report
 library(plotly) #for interactive graphs
 library(DT) # to output summary table
 library(RColorBrewer) # for seeting colour scales
 library(raster)
 library(shinyBS) # for modals
-#library(rgeos)
+library(tinytex) # for downloading .doc and .pdf extension reports
+library(shinyscreenshot) # for saving images of graphs
+library(webshot) # for downloading graphs as images
+webshot::install_phantomjs()
+library(htmlwidgets)
+library(mapview)
+library(htmltools)
 
 ###### Main datasets
 glasgow_map_regions <- readRDS("data/glasgow_regions.rds") # shapefile for glasgow city region areas
 uk_map_regions <- readRDS("data/uk_regions.rds")
 indicators_data <- readRDS("data/indicators_data.rds") # read in indicators data
-#indicator_definitions <- readRDS("data/indicator_definitions.rds") #read in definitions for indicators
-
-
+#clean up defintions
+indicators_data$Definition[is.na(indicators_data$Definition)|indicators_data$Definition==""] <- "No description available"
 
 ###### Calculations for app
 #making a table of the latest data for the summary page as indicators differ in year for latest data
 #table of most recent years
-most_recent_years <- indicators_data %>% group_by(Indicator,Region) %>% summarise(recent_year = max(Year), Years_available = n())
+most_recent_years <- indicators_data %>% group_by(Indicator,Job_sector,Region) %>% summarise(recent_year = max(Year), Years_available = n())
 #join latest years with original table to get value for that year
-latest_data <- inner_join(most_recent_years,indicators_data, by = c("Region","Indicator","recent_year"="Year")) %>% rename(Year = recent_year)
+latest_data <- inner_join(most_recent_years,indicators_data, by = c("Region","Indicator","Job_sector","recent_year"="Year")) %>% rename(Year = recent_year)
 
 #get unique list for data sources
 source_data <- unique(indicators_data[,c('Indicator','Source')])
 #calculate % changes for 1 year, 3, 5 and 10 year periods where appropriate
-change_data <- inner_join(indicators_data, most_recent_years, by = c("Region","Indicator")) %>% mutate_at(vars(Year,recent_year), ~as.numeric(.))
+change_data <- inner_join(indicators_data, most_recent_years, by = c("Region","Indicator","Job_sector")) %>% mutate_at(vars(Year,recent_year), ~as.numeric(.))
 change_data <- change_data %>% mutate(year_diff = recent_year - Year) %>% dplyr::select(-Source)
 
 latest_one_year <- change_data %>% filter(Years_available>1 & (year_diff==0|year_diff==1)) %>% arrange(Region,Indicator,Year) %>% group_by(Indicator,Region) %>% summarise(change = "1 year change", change_value = ifelse(grepl("%|[A-Z] : |\\([a-z|0-9].+\\)",Indicator)==TRUE, Value - lag(Value),(Value - lag(Value))/lag(Value)*100))
@@ -53,9 +58,10 @@ uk_regions <- c("Cardiff Capital Region", "Edinburgh and South East Scotland Cit
                 "Greater Manchester", "Liverpool City Region", "North of Tyne", "Sheffield City Region", 
                 "West Midlands", "West of England", "West Yorkshire")
 
-indicators <- c(unique(indicators_data$Indicator))
-indicators_cleaned <- c(unique(indicators_data$Indicator[!grepl("[A-Z] :",indicators_data$Indicator)]))
+all_indicators <- c(unique(indicators_data$Indicator))
+indicators_cleaned <- c(unique(indicators_data$Indicator[indicators_data$Indicator!="Jobs by Sector"]))
+  #c(unique(indicators_data$Indicator[!grepl("[A-Z] :",indicators_data$Indicator)]))
 
-job_sectors <- c(unique(indicators_data$Indicator[grepl("[A-Z] :",indicators_data$Indicator)]))
+job_sectors <- unique(indicators_data$Job_sector[indicators_data$Indicator == "Jobs by Sector" & grepl("[A-Z] :",indicators_data$Job_sector)])
 
 comparators <- c("Scotland", "Scottish City Region Top Quartile Averages", "City Region Top Quartile Averages", "United Kingdom")
