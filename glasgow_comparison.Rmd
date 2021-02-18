@@ -13,6 +13,8 @@ params:
 library(ggplot2)
 measure <- unique(params$Bar_Data$Measure)
 comp_value <- unique(params$Bar_Data$Comp_Value)
+lower_year <- min(params$Time_Data$Year)
+higher_year <- max(params$Time_Data$Year)
 ```
 ##**`r params$Indicator`** based on `r unique(latest_data$Year[latest_data$Indicator == params$Indicator])` data compares as follows when looking at the following local authorities within the Glasgow City Region: 
 
@@ -24,8 +26,8 @@ kable(params$Bar_Data[,c("Region","Value","Measure")])
 
 ```{r echo=FALSE}
 ggplot(data=params$Bar_Data) + 
-  geom_line(aes(x=Region,y=Comp_Value), stat="identity", group = 1, color = "#7d3778") +
   geom_bar(aes(x=Region,y=Value), stat="identity", fill="#E9BD43") + 
+  geom_line(aes(x=Region,y=Comp_Value), stat="identity", group = 1, color = "#7d3778") +
   labs(x="",y=measure) + theme_minimal()
 ```
 
@@ -35,6 +37,7 @@ ggplot(data=params$Bar_Data) +
 
 ```{r echo=FALSE}
 ggplot(data=params$Time_Data, aes(x=Year,y=Value)) +
-  geom_line(aes(color=Region), size=2.5) + scale_color_brewer(palette="Accent") + 
+  geom_line(aes(color=Region), size=1.5) + scale_color_brewer(palette="Dark2") + 
+  scale_x_continuous(breaks=seq(lower_year,higher_year, by=1)) +
   labs(x="",y=measure)+ theme_minimal()
 ```

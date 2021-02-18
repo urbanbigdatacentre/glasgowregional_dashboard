@@ -288,7 +288,7 @@ latest_indicator_data <- reactive({
 
 #subset data for the region that the user selects to be the comparator
 comparator_data <- reactive({
-  latest_data %>% subset(Indicator %in% input$economic_indicator_choice & Region %in% input$comparator_choice) #%>% rename(Comparator = Region, Comp_Value = Value)
+  latest_data %>% subset(Indicator %in% input$economic_indicator_choice & Region %in% input$comparator_choice)
 })
 
 #create a new table that now has the comparator on each row (needed for bar chart)
@@ -405,7 +405,7 @@ glasgow_map_react <- reactive({
                                                     bringToFront = TRUE),
                 layerId =~lad19nm,
                 #label=~HTML(map_tooltip())) %>%
-                label = ~paste(lad19nm, round(selected_indicator_data_year()$Value,2))) %>%
+                label = ~paste(lad19nm, format(round(selected_indicator_data_year()$Value,2), big.mark = ","))) %>%
               addLegend('topright', pal = pal(), values = round(selected_indicator_data_year()$Value,2), title = unique(selected_indicator_data_year()$Measure),
                         #by default legend shows quantile % ranges instead of numeric values - change
                         labFormat = function(type,cuts,p) {
@@ -487,11 +487,11 @@ output$glasgow_bar_subtitle <- renderText({
 
 #bar graph
 glasgow_bar_chart <- reactive({
-  plot_ly(data = selected_indicator_data_year())%>%  #,text=tooltip_bar, hoverinfo="text",
+  plot_ly(data = selected_indicator_data_year(), hoverinfo="none")%>%  #,text=tooltip_bar, hoverinfo="text",
                   #for comaparator
   add_trace(x = ~Region, y = ~Comp_Value, name= ~unique(Comparator), type = 'scatter', mode = 'lines',
            line = list(color = '#7d3778'), showlegend = FALSE, hoverinfo="skip") %>%
-  add_bars(x = ~reorder(Region,-Value), y = ~Value, marker = list(color='#E9BD43')) %>% 
+  add_bars(x = ~reorder(Region,-Value), y = ~Value, marker = list(color='#E9BD43'), text = ~paste(Region, "<br>", format(round(Value,2),big.mark = ",")), hoverinfo="text") %>% 
    layout(annotations = list(),
      xaxis = list(title="", color='white',tickcolor='white',categoryorder="array",categoryarray = region_order(),showgrid=FALSE),
          yaxis = list(title=~unique(Measure), color='white',tickcolor='white',showgrid=FALSE),
@@ -691,7 +691,7 @@ uk_map_react <- reactive({
                 # label=~lad19nm) 
                 label=~paste(
                   cauth19nm," : ",
-                  uk_selected_indicator_data_year()$Value)) %>%
+                  format(round(uk_selected_indicator_data_year()$Value,2), big.mark = ","))) %>%
     addLegend('topright', pal = pal_uk(), values = round(uk_selected_indicator_data_year()$Value,2), title = unique(uk_selected_indicator_data_year()$Measure),
               #by default legend shows quantile % ranges instead of numeric values - change
               labFormat = function(type,cuts,p) {
@@ -731,8 +731,9 @@ output$uk_summary_table <- DT::renderDataTable({
 output$uk_timetrend_title <- renderText({ paste0("Historical data for ",input$uk_economic_indicator_choice) })
 #set tooltip label
 uk_tooltip_trend <- reactive({
-  paste0(uk_selected_indicator_data()$Region,"<br>",uk_selected_indicator_data()$Value,"<br>",uk_selected_indicator_data()$Year)
-})
+  paste0(uk_selected_indicator_data()$Region,"<br>",format(round(uk_selected_indicator_data()$Value,2), big.mark = ","),"<br>",uk_selected_indicator_data()$Year)
+  #HTML(paste0("<b>",uk_selected_indicator_data()$Region,"</b><br>",format(round(uk_selected_indicator_data()$Value), big.mark = ","),"<br>",uk_selected_indicator_data()$Year))
+  })
 #trend graph
 output$time_trend_uk <- renderPlotly({
   #req(nrow(uk_selected_indicator_data()) > 2)
@@ -769,18 +770,18 @@ output$uk_bar_title <- renderText({
   #req(nrow(selected_indicator_data_year()>2)) 
   unique(paste0("City regions compared against ",input$uk_comparator_choice, " (",uk_selected_indicator_data_year()$Year," data)")) })
 
-output$glasgow_bar_subtitle <- renderText({
+output$uk_bar_subtitle <- renderText({
   unique(paste0("Horizontal line represents ", input$uk_comparator_choice, " with a value of: ", format(round(uk_selected_indicator_data_year()$Comp_Value,2),big.mark=",")))
 })
 
 #bar graph
 output$uk_rank_plot <- renderPlotly({
   #req(nrow(uk_selected_indicator_data_year()>0))
-  plot_ly(data = uk_selected_indicator_data_year())%>%  #,text=tooltip_bar, hoverinfo="text",
+  plot_ly(data = uk_selected_indicator_data_year(), hoverinfo="none")%>%  #,text=tooltip_bar, hoverinfo="text",
     #for comaparator
     add_trace(x = ~Region, y = ~Comp_Value, name= ~unique(Comparator), type = 'scatter', mode = 'lines',
-              line = list(color = '#7d3778'), showlegend = FALSE, hoverinfo="skip") %>%
-    add_bars(x = ~reorder(Region,-Value), y = ~Value, marker = list(color='#E9BD43')) %>% 
+              line = list(color = '#7d3778'), showlegend = FALSE) %>%
+    add_bars(x = ~reorder(Region,-Value), y = ~Value, marker = list(color='#E9BD43'), text = ~paste(Region, "<br>", format(round(Value,2),big.mark = ",")), hoverinfo="text") %>% 
     layout(annotations = list(),
            xaxis = list(title="", color='white',tickcolor='white',categoryorder="array",categoryarray = region_order(),showgrid=FALSE),
            yaxis = list(title=~unique(Measure), color='white',tickcolor='white',showgrid=FALSE),

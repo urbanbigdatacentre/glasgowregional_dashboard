@@ -1,5 +1,7 @@
 /* CSS styles used in the shiny app */
-
+/*come back to these*/
+.shiny-output-error { visibility: hidden; }
+.shiny-output-error:before { visibility: hidden; }
 /*#body {background-color:black;} */
 body {
  /* background-image:linear-gradient(black,#595065); */

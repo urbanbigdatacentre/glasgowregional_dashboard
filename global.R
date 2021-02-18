@@ -32,11 +32,12 @@ indicators_data <- readRDS("data/indicators_data.rds") # read in indicators data
 indicators_data$Definition[is.na(indicators_data$Definition)|indicators_data$Definition==""] <- "No description available"
 
 ###### Calculations for app
-#making a table of the latest data for the summary page as indicators differ in year for latest data
+#making a table of the latest data for the summarhy page as indicators differ in year for latest data
 #table of most recent years
 most_recent_years <- indicators_data %>% group_by(Indicator,Job_sector,Region) %>% summarise(recent_year = max(Year), Years_available = n())
 #join latest years with original table to get value for that year
 latest_data <- inner_join(most_recent_years,indicators_data, by = c("Region","Indicator","Job_sector","recent_year"="Year")) %>% rename(Year = recent_year)
+latest_data$Value <- round(latest_data$Value,2)
 
 #get unique list for data sources
 source_data <- unique(indicators_data[,c('Indicator','Source')])

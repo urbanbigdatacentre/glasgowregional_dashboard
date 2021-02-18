@@ -216,8 +216,6 @@ tagList( #needed for shinyjs
                                    #Leaflet map to show areas
                                    column(7,
                                           uiOutput("uk_indicator_title"), br(),
-                                          div(class="graph_title",
-                                                textOutput("uk_map_title")), br(),
                                           leafletOutput("uk_map"),
                                           br(),br(),
                                           div(class="graph_title",textOutput("uk_timeseries_title")),
