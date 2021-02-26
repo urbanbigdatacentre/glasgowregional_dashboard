@@ -15,6 +15,7 @@ measure <- unique(params$Bar_Data$Measure)
 comp_value <- unique(params$Bar_Data$Comp_Value)
 lower_year <- min(params$Time_Data$Year)
 higher_year <- max(params$Time_Data$Year)
+number_of_years <- length(unique(params$Time_Data$Year))
 ```
 ##**`r params$Indicator`** based on `r unique(latest_data$Year[latest_data$Indicator == params$Indicator])` data compares as follows when looking at the following local authorities within the Glasgow City Region: 
 
@@ -24,10 +25,11 @@ kable(params$Bar_Data[,c("Region","Value","Measure")])
 
 ## Local authorities compared to **`r params$Comparator`** with a value of `r comp_value`.
 
-```{r echo=FALSE}
+```{r echo=FALSE, results='hide'}
 ggplot(data=params$Bar_Data) + 
   geom_bar(aes(x=Region,y=Value), stat="identity", fill="#E9BD43") + 
   geom_line(aes(x=Region,y=Comp_Value), stat="identity", group = 1, color = "#7d3778") +
+  scale_x_discrete(labels = function(x) str_wrap(x, width = 10))
   labs(x="",y=measure) + theme_minimal()
 ```
 
@@ -36,8 +38,12 @@ ggplot(data=params$Bar_Data) +
 ## Historic data for `r params$Indicator` and local authorities selected
 
 ```{r echo=FALSE}
-ggplot(data=params$Time_Data, aes(x=Year,y=Value)) +
-  geom_line(aes(color=Region), size=1.5) + scale_color_brewer(palette="Dark2") + 
+timeseries_graph <- if(number_of_years>1){ggplot(data=params$Time_Data, aes(x=Year,y=Value)) +
+  geom_point(aes(color=Region_label), size=1.5) + geom_line(aes(color=Region_label), size=1.5) + scale_color_brewer(palette="Dark2") + 
   scale_x_continuous(breaks=seq(lower_year,higher_year, by=1)) +
-  labs(x="",y=measure)+ theme_minimal()
+  labs(x="",y=measure)+ theme_minimal()} else {ggplot(data=params$Time_Data, aes(x=Year,y=Value)) +
+  geom_point(aes(color=Region_label), size=1.5) + scale_color_brewer(palette="Dark2") + 
+  scale_x_continuous(breaks=seq(lower_year,higher_year, by=1)) +
+  labs(x="",y=measure)+ theme_minimal()}
+print(timeseries_graph)
 ```
