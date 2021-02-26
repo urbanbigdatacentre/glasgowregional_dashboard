@@ -3,26 +3,21 @@
 ###############################################
 tagList( #needed for shinyjs
   useShinyjs(),  # Include shinyjs from UI for the functions to work
-  #div(img(src="glasgow_header.jpg", style="height:100%; width: 100%; position: relative;")),
   div(class = "container",
       br(),
-      p(class="header-title", "GLASGOW CITY REGION", style = "margin-top: 10px; opacity: 0.9;"),   #, style="color: white; font-family: 'Franklin Gothic Medium', 'Franklin Gothic', 'ITC Franklin Gothic', Arial, sans-serif;  font-size: 40px; line-height: 20px"),
-      p(class="header-title", "ECONOMIC", style = "opacity: 0.7;"), #style="color: font-family: 'Franklin Gothic Medium', 'Franklin Gothic', 'ITC Franklin Gothic', Arial, sans-serif;  font-size: 40px;"),
-      p(class="header-title", "DASHBOARD", style = "opacity: 0.5;"),#, style="color: white; font-family: 'Franklin Gothic Medium', 'Franklin Gothic', 'ITC Franklin Gothic', Arial, sans-serif;  font-size: 40px;")
+      p(class="header-title", "GLASGOW CITY REGION", style = "margin-top: 10px; opacity: 0.9;"),
+      p(class="header-title", "ECONOMIC", style = "opacity: 0.7;"), 
+      p(class="header-title", "DASHBOARD", style = "opacity: 0.5;"),
       br()
       ),
-  navbarPage(id = "intabset", #landingpage title
+  navbarPage(id = "landing_page",
              title = "",
              windowTitle = "Glasgow City Region Economic Dashboard", #title for browser tab
-             theme = shinytheme("slate"), #Theme of the app #dark blue background
-             collapsible = TRUE, #tab panels collapse into menu in small screens
-             # header =         
-             # tags$head( #CSS styles
-             #  cookie_box, ##Cookie box
-            #tags$link(rel="shortcut icon", href="favicon_scotpho.ico"), #Icon for browser tab
+             theme = shinytheme("slate"), #app theme
+             collapsible = TRUE, #tab panels collapse into a menu when user has a small screen
             header = includeCSS("style.css"),
-             #  HTML("<base target='_blank'>") # to make external links open a new tab
-           #  ,
+              # HTML("<base target='_blank'>") #external links open in a new tab
+            # ,
              
 ########################################################
 #Landing Page
@@ -32,19 +27,22 @@ tagList( #needed for shinyjs
                       fluidRow(column(7,p(h3("Welcome to the Glasgow City Region Tool")))),
                       #print out map showing Glasgow city regions - for user interaction
                       fluidRow(column(6,leafletOutput("regionmap")),
-                              #only show summary if an area has been selected
-                               # conditionalPanel("input$regionsmap_shape_click$id!==null && input$regionsmap_shape_click$id!==''",
-                                        #print out area that has been selected on the map
+                              #only show summary if an area has been selected, until then instruction placeholder that gets hidden once area selected
                                         column(6,
                                         div(id="intro_text", 
                                             br(),br(),br(),br(),br(),br(), br(),br(),p("Please select an area on the map to get overall statistics for that area")),
-                                 hidden(div(id="area_detail",textOutput("region_name"),
+                                        #print out area that has been selected on the map - once selected
+                                        hidden(div(id="area_detail",textOutput("region_name"),
                                         br(), br(),
-                                        #printing out summary data          
+                                        #printing out summary data - for each indicator separately        
                                         fluidRow(column(4,offset=1,div(class= "summary_box",
+                                            #First the name of indicator
                                             div(class= "summary_title",p("Total Population")),
+                                                                        #then latest year
                                                                        div(uiOutput("pop_year"),style = "line-height:1px; font-size: 10px;"),
+                                            #then value for the latest year
                                             div(class= "summary_value",textOutput("region_population"))),
+                                            #then the expanding element - that has % changes for different years
                                             div(class="expanding_element",uiOutput("pop_year_change", style="line-height: 1px;"),
                                                                           br(),uiOutput("pop_extra_info"),br())),
                                         column(4,offset=2,div(class= "summary_box",
@@ -66,10 +64,13 @@ tagList( #needed for shinyjs
                                             div(class= "expanding_element",uiOutput("enterprises_year_change", style="line-height: 1px;"),
                                                 br(),uiOutput("enterprises_extra_info")))),
                                         fluidRow(column(4,offset=1,div(class= "summary_box",
+                                            #service exports is an indicator that is available at NUTS3 areas not at LA and therefore want to print a warning message for certain areas
                                             div(class= "summary_title",p("Service Exports/Job")),
-                                                                      div(uiOutput("serviceexports_year"),style = "line-height:1px; font-size: 10px;"),
+                                            div(uiOutput("notes"), style = "color: #E9BD43; line-height:1px; font-size: 10px;"), br(),
+                                                                     div(uiOutput("serviceexports_year"),style = "line-height:1px; font-size: 10px;"),
                                             div(class= "summary_value",textOutput("region_serviceexports"))),
-                                            div(class= "expanding_element",uiOutput("serviceexports_year_change", style="line-height: 1px;"), br(), br(),
+                                            div(class= "expanding_element",div(uiOutput("extra_note"), style = "font-size: 10px;"),br(),
+                                                uiOutput("serviceexports_year_change", style="line-height: 1px;"), br(), br(),
                                                 uiOutput("serviceexports_extra_info"))),
                                         column(4,offset=2,div(class= "summary_box",
                                             div(class= "summary_title",p("Total Weekly Median Income")),
@@ -127,7 +128,7 @@ tagList( #needed for shinyjs
 #Compare Glasgow City Region LA's to each other tab
 #########################################################
              
-             tabPanel(title = "Compare Glasgow City Local Authorities", icon = icon("balance-scale-left"), value = "glasgow_tab",
+             tabPanel(title = "Compare Glasgow City Region Local Authorities", icon = icon("balance-scale-left"), value = "glasgow_tab",
                       wellPanel(class= "subheader", fluidRow(
                         column(4,div(class="selector",p(tags$b("1. Select an indicator of interest")),
                                    selectizeInput("economic_indicator_choice", label = NULL, choices=indicators_cleaned,
@@ -135,12 +136,18 @@ tagList( #needed for shinyjs
 
                                                               actionButton("definition","Indicator definition", icon = icon("info"), color = "#E9BD43"), br()
                                ),
-                        column(4,div(class="selector",p(tags$b("2. Select local authorities of interest")),
-                                     selectizeInput("glasgow_region_choice", label = NULL,
+                        column(4,div(class="selector",p(tags$b("2. Select areas of interest")),
+                                     conditionalPanel(condition = "input.economic_indicator_choice != 'Service Exports Per Job (£)'",
+                                       selectizeInput("glasgow_LA_choice", label = NULL,
                                                           choices = glasgow_regions, selected = character(0), multiple = TRUE,
                                                           options = list(maxOptions = 1300, 
-                                                                         placeholder = "Select one or more local authorities of interest")))
-                               ),
+                                                                         placeholder = "Select one or more local authorities of interest"))),
+                                     conditionalPanel(condition = "input.economic_indicator_choice == 'Service Exports Per Job (£)'",
+                                       selectizeInput("glasgow_NUTS3_choice", label = NULL,
+                                                    choices = combined_regions_list, selected = character(0), multiple = TRUE,
+                                                    options = list(maxOptions = 1300, 
+                                                                   placeholder = "Select one or more NUTS level 3 areas of interest")))
+                               )),
                         column(4,div(class="selector",p(tags$b("3. Choose a comparator area")),
                                      selectizeInput("comparator_choice", label = NULL, choices=comparators,
                                                  selected = NULL,  options = list(maxOptions = 1300, 
@@ -153,9 +160,8 @@ tagList( #needed for shinyjs
                         hidden(div(id="glasgow_areas_comparison",
                         #Leaflet map to show areas
                         column(7,
-                               uiOutput("indicator_title"), br(),
-                              # conditionalPanel(condition="input.economic_indicator_choice=='Service Exports Per Job (£)'",
-                              #   uiOutput("notes"),br()),
+                               uiOutput("indicator_title"), 
+                               br(),
                                leafletOutput("glasgow_map"),
                                br(), br(),
                                div(class="graph_title",textOutput("timeseries_title")),
@@ -188,14 +194,16 @@ tagList( #needed for shinyjs
                                                 div(class="selector",
                                                     selectizeInput("uk_jobs_choice", label = "Show for sector", choices = job_sectors, 
                                                                    options = list(maxOptions = 1300))),
+                                                #awesomeRadio(inputId = "job_measure_picker",
                                                 radioGroupButtons(inputId = "job_measure_picker",
                                                                    label = "Choose measure to view indicator by", 
                                                                    choices = c("Count by sector"="count", "Percentage of total jobs"="perc"), selected="count",
+                                                                  # inline= TRUE, checkbox = TRUE)#,
                                                                    checkIcon = list(yes = icon("ok",lib = "glyphicon")))
                                ),
                                actionButton("uk_definition","Indicator definition", icon = icon("info"), color = "#E9BD43"), br()
                         ),
-                        column(4,div(class="selector",p(tags$b("2. Select UK city regions of interest")),
+                        column(4,div(class="selector",p(tags$b("2. Select regions of interest")),
                                      selectizeInput("uk_region_choice", label = NULL,
                                                     choices = uk_regions, selected = "Glasgow City Region", multiple = TRUE,
                                                     options = list(maxOptions = 1300, 

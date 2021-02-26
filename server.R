@@ -12,9 +12,9 @@ output$regionmap <- renderLeaflet({
                                                                      highlightOptions = highlightOptions(color = "#E9BD43",
                                                                                                          weight = 2,
                                                                                                          bringToFront = TRUE),
-                                                                     layerId =~lad19nm,
+                                                                     layerId =~area_name,
                                                                      #options = pathOptions(pane= "highlight", clickable=TRUE), 
-                                                                     label=~lad19nm)
+                                                                     label=~area_name)
 })
 
 #this records what area has been selected internally
@@ -35,7 +35,7 @@ output$region_population <- renderText({format(latest_data$Value[latest_data$Reg
 output$region_jobs <- renderText({format(latest_data$Value[latest_data$Region == input$regionmap_shape_click$id & latest_data$Indicator == "Total Jobs"], big.mark=",")})
 output$region_GVAworked <- renderText({paste0("£",round(latest_data$Value[latest_data$Region == input$regionmap_shape_click$id & latest_data$Indicator == "GVA per hour worked (£)"],2))})
 output$region_enterprises <- renderText({round(latest_data$Value[latest_data$Region == input$regionmap_shape_click$id & latest_data$Indicator == "Number of Enterprises per 10,000 population (16-64)"],2)})
-output$region_serviceexports <- renderText({paste0("£",round(latest_data$Value[latest_data$Region == input$regionmap_shape_click$id & latest_data$Indicator == "Service Exports Per Job (£)"],2))})
+output$region_serviceexports <- renderText({paste0("£",round(NUTS_3_latest_data$Value[NUTS_3_latest_data$Region == input$regionmap_shape_click$id & NUTS_3_latest_data$Indicator == "Service Exports Per Job (£)"],2))})
 output$region_medianincome <- renderText({round(latest_data$Value[latest_data$Region == input$regionmap_shape_click$id & latest_data$Indicator == "Residence-based Full-time Median Weekly Earnings"],2)})
 output$region_noqualification <- renderText({paste0(signif(latest_data$Value[latest_data$Region == input$regionmap_shape_click$id & latest_data$Indicator == "Working-age population with no qualifications (%)"],3),"%")})
 output$region_unemployed <- renderText({paste0(signif(latest_data$Value[latest_data$Region == input$regionmap_shape_click$id & latest_data$Indicator == "Unemployment Rate 16-64 (%)"],3),"%")})
@@ -113,14 +113,29 @@ output$serviceexports_extra_info <- renderUI({
   a(href=link,
     "Data Source") })
 output$serviceexports_year <- renderUI({
-  recent_year <- latest_data$Year[latest_data$Region == input$regionmap_shape_click$id & latest_data$Indicator == "Service Exports Per Job (£)"]
+  recent_year <- NUTS_3_latest_data$Year[NUTS_3_latest_data$Region == input$regionmap_shape_click$id & NUTS_3_latest_data$Indicator == "Service Exports Per Job (£)"]
   p(recent_year) })
-#only one year for this - will there be more?
+#only one year for this right now
 output$serviceexports_year_change <- renderUI({
-  one_change <- round(indicators_change$change_value[indicators_change$Region == input$regionmap_shape_click$id & indicators_change$Indicator == "Service Exports Per Job (£)" & indicators_change$change == "1 year change"],2)
+  one_change <- ifelse(round(NUTS_3_indicators_change$change_value[NUTS_3_indicators_change$Region == input$regionmap_shape_click$id & NUTS_3_indicators_change$Indicator == "Service Exports Per Job (£)" & NUTS_3_indicators_change$change == "1 year change"],2))
   #three_change <- round(indicators_change$change_value[indicators_change$Region == input$regionmap_shape_click$id & indicators_change$Indicator == "Service Exports Per Job (£)" & indicators_change$change == "3 year change"],2)
   ifelse(length(one_change)==0,HTML("No historical data available"),HTML(paste0("<p>",one_change,"% 1-year change","</p>")))#,"<br>","<p>",three_change,"% 3-year change","</p>"))
      })
+
+#Service exports is an indicator available at different geography levels than the rest of the indicators - so adding  note for the user baout this
+output$notes <- renderUI({
+  paste0("Please note this indicator is based on NUTS level 3 areas")
+})
+
+#extra description for the LA's that are part of a combined region in NUTS3 
+output$extra_note <- renderUI({
+  req(input$regionmap_shape_click$id!="")
+  if (input$regionmap_shape_click$id == "East Dunbartonshire"|input$regionmap_shape_click$id == "West Dunbartonshire"){
+    paste0(input$regionmap_shape_click$id," is part of the NUTS level 3 region East Dunbartonshire, West Dunbartonshire and Helensburgh and Lomond.")
+  } else if (input$regionmap_shape_click$id == "Inverclyde"|input$regionmap_shape_click$id == "East Renfrewshire"|input$regionmap_shape_click$id == "Renfrewshire"){
+    paste0(input$regionmap_shape_click$id," is part of the NUTS level 3 region Inverclyde, East Renfrewshire and Renfrewshire.")
+  } else { "" }
+})
 
 #Median Income
 output$medianincome_extra_info <- renderUI({
@@ -235,14 +250,14 @@ output$emissions_year_change <- renderUI({
 #Creating the code to be able to download a summary of the area being presented
 #request whether the user wants it by pdf or word when downloading
 output$single_area_summary_md <- downloadHandler(
-  filename = paste0(input$regionmap_shape_click$id,"_summary","_",Sys.Date(),".doc"),
+  filename = paste0(input$regionmap_shape_click$id,"_summary","_",Sys.Date(),".pdf"),
   content = function(file){
     tempReport <- file.path(tempdir(), "region_summary_download.Rmd")
     file.copy("region_summary_download.Rmd",tempReport, overwrite = TRUE)
     #parameters to pass to Rmd document
     params <- list(Region = input$regionmap_shape_click$id)
     #knitting the document
-    rmarkdown:: render(tempReport, 'word_document', output_file = file,
+    rmarkdown:: render(tempReport, 'pdf_document', output_file = file,
                        params = params,
                        envir =  new.env(parent = globalenv())
                        )
@@ -275,15 +290,26 @@ observeEvent(input$definition|input$uk_definition, {
 #####Creating reactive datasets###############
 #subset data for indicator selected
 selected_indicator_data <- reactive ({
+  if(input$economic_indicator_choice == "Service Exports Per Job (£)"){
     indicators_data %>%
       subset(Indicator == input$economic_indicator_choice &
-               Region %in% input$glasgow_region_choice)            
+               Region %in% input$glasgow_NUTS3_choice)
+  } else {
+    indicators_data %>%
+      subset(Indicator == input$economic_indicator_choice &
+               Region %in% input$glasgow_LA_choice)
+  }
   })
 
 #get the data for latest years by subsetting the latest_year table that only has most recent years' data
 latest_indicator_data <- reactive({
+  if(input$economic_indicator_choice == "Service Exports Per Job (£)"){
   latest_data %>% subset(Indicator %in% input$economic_indicator_choice &
-                           Region %in% input$glasgow_region_choice)
+                             Region %in% input$glasgow_NUTS3_choice)  
+  } else {
+  latest_data %>% subset(Indicator %in% input$economic_indicator_choice &
+                           Region %in% input$glasgow_LA_choice)
+  }
 })
 
 #subset data for the region that the user selects to be the comparator
@@ -293,32 +319,50 @@ comparator_data <- reactive({
 
 #create a new table that now has the comparator on each row (needed for bar chart)
 selected_indicator_data_year <- reactive ({
+  if(input$economic_indicator_choice == "Service Exports Per Job (£)"){
+    latest_data_filtered <- latest_data %>% subset(Indicator %in% input$economic_indicator_choice &
+                                                     Region %in% input$glasgow_NUTS3_choice) %>% mutate(Comparator = comparator_data()$Region, Comp_Value = comparator_data()$Value) 
+    latest_data_sorted <- latest_data_filtered[order(match(latest_data_filtered$Region,selected_areas()$area_name)),]  
+    return(latest_data_sorted)  
+  } else {
   latest_data_filtered <- latest_data %>% subset(Indicator %in% input$economic_indicator_choice &
-                           Region %in% input$glasgow_region_choice) %>% mutate(Comparator = comparator_data()$Region, Comp_Value = comparator_data()$Value) 
-  latest_data_sorted <- latest_data_filtered[order(match(latest_data_filtered$Region,selected_areas()$lad19nm)),]  
+                           Region %in% input$glasgow_LA_choice) %>% mutate(Comparator = comparator_data()$Region, Comp_Value = comparator_data()$Value) 
+  latest_data_sorted <- latest_data_filtered[order(match(latest_data_filtered$Region,selected_areas()$area_name)),]  
   return(latest_data_sorted)
+  }
 })
 
+hide_visualisations_event <- reactive({list(input$glasgow_LA_choice,input$economic_indicator_choice,input$glasgow_NUTS3_choice)})
 #UX optimisation - only want graphs to show when more than 1 area selected
-observeEvent(input$glasgow_region_choice,{
+observeEvent(hide_visualisations_event(),{
   #this first line is required because have set it that if user clicks an area on first page,
   #this automatically gets selected on the next page - which would otherwise trigger the event even before the user got to that page
-  req(length(input$glasgow_region_choice)>1)
+if((input$economic_indicator_choice != "Service Exports Per Job (£)") && length(input$glasgow_LA_choice)>1){
   shinyjs::hide(id="intro_page2_text")
   shinyjs::show(id="glasgow_areas_comparison") 
+} else if ((input$economic_indicator_choice == "Service Exports Per Job (£)") && length(input$glasgow_NUTS3_choice)>1) {
+  shinyjs::hide(id="intro_page2_text")
+  shinyjs::show(id="glasgow_areas_comparison") 
+} else {
+  shinyjs::show(id="intro_page2_text")
+  shinyjs::hide(id="glasgow_areas_comparison") 
+  }
   }, ignoreInit = TRUE)
 
 #filter the shapefile to only show the regions selected
 selected_areas <- reactive ({
-  glasgow_map_regions %>%
-    subset(lad19nm %in% input$glasgow_region_choice)
+  if(input$economic_indicator_choice == "Service Exports Per Job (£)"){ 
+    NUTS_3_regions %>%
+      subset(area_name %in% input$glasgow_NUTS3_choice) 
+    } else { glasgow_map_regions %>%
+    subset(area_name %in% input$glasgow_LA_choice) }
 })
 
 #update select input for region based on first page
 observe({
 map_area <- input$regionmap_shape_click$id
 #update the drop-down to have this area in on the second page
-updateSelectizeInput(session,"glasgow_region_choice", label = NULL,
+updateSelectizeInput(session,"glasgow_LA_choice", label = NULL,
                      choices = glasgow_regions, selected = map_area,
                      options = list(maxOptions = 1300, 
                                     placeholder = "Select one or more local authorities of interest"))
@@ -333,14 +377,34 @@ comparators_available <- reactive({
 
 #update comparator list based on what's available for that indicator
 observeEvent(input$economic_indicator_choice, {
+#  if(input$economic_indicator_choice == "Service Exports Per Job (£)"){
 
+# updateSelectizeInput(session,"glasgow_region_choice", label = NULL,
+#                      choices = combined_regions_list,
+#                      options = list(maxOptions = 1300,
+#                                     placeholder = "Select one or more NUTS level 3 areas of interest"))
+# 
+# updateSelectizeInput(session,"comparator_choice", label = NULL, choices=comparators_available(),
+#                 options = list(maxOptions = 1300, 
+#                                                 placeholder = "Select a comparator area to compare regions to"))
+# 
+# updateSelectizeInput(session,"uk_economic_indicator_choice", label = NULL, choices=all_indicators,
+#                      selected = input$economic_indicator_choice)
+# 
+# } else {
   
+# updateSelectizeInput(session,"glasgow_region_choice", label = NULL,
+#                        choices = glasgow_regions,
+#                        options = list(maxOptions = 1300,
+#                                       placeholder = "Select one or more local authorities of interest"))  
+
 updateSelectizeInput(session,"comparator_choice", label = NULL, choices=comparators_available(),
-                options = list(maxOptions = 1300, 
-                                                placeholder = "Select a comparator area to compare regions to"))
+                         options = list(maxOptions = 1300,
+                                        placeholder = "Select a comparator area to compare regions to"))
 
 updateSelectizeInput(session,"uk_economic_indicator_choice", label = NULL, choices=all_indicators,
-                     selected = input$economic_indicator_choice)
+                         selected = input$economic_indicator_choice)
+#}
 
 })
 
@@ -353,20 +417,6 @@ output$timeseries_title <- renderText({ paste0("Historical data for ",input$econ
 output$latest_data <- renderText({ paste0("Latest data available: ", unique(selected_indicator_data_year()$Year))})
 output$indicator_title <- renderUI({ HTML(paste0("<h3>",input$economic_indicator_choice,"</h3>","<p>(Latest data: ",unique(selected_indicator_data_year()$Year),")</p>"))})
 
-######################
-#######################################################COME BACK
-################################
-###############################
-# output$notes <- renderUI({
-#   #for (i in length(combined_areas)){
-#  # if(region_1[i] %in% input$glasgow_region_choice){
-#   if("East Dunbartonshire" %in% input$glasgow_region_choice) {
-#     text <- paste0("Please note East Dunbartonshire is part of the Scottish region combining East Dunbartonshire, for this indicator and the value presented for this local authority is representative for this region as a whole.")
-#   }# else if () {
-#     print(text)
-#   #}
-#     })
-  
 #rendering of the map
 output$glasgow_map <- renderLeaflet({
 glasgow_map_react()
@@ -379,8 +429,7 @@ pal <- reactive({
 
 # #tooltip for map
 map_tooltip <- reactive({
-#    htmltools::HTML(
-      paste("<b>",htmlEscape(selected_areas()$lad19nm),"</b>","<br/>",htmlEscape(selected_indicator_data_year()$Value),"<br/>")#)
+      paste("<b>",htmlEscape(selected_areas()$area_name),"</b>","<br/>",htmlEscape(selected_indicator_data_year()$Value),"<br/>")#)
 })
 
 map_title <- reactive({
@@ -389,8 +438,8 @@ map_title <- reactive({
 
 #map code
 glasgow_map_react <- reactive({
- # tooltip <- paste("<b>",htmlEscape(lad19nm),"</b>","<br/>",htmlEscape(selected_indicator_data_year()$Value),"<br/>")#)
-   leaflet(data=selected_areas(),options=leafletOptions(zoomControl = FALSE)) %>% addProviderTiles("CartoDB.Positron") %>% #CartoDB.Positron, CartoDB.Voyager maybe addTiles() %>% #addProviderTiles(providers$Stadia.AlidadeSmoothDark) %>% 
+  #req(nrow(selected_areas())>0)
+  leaflet(data=selected_areas(),options=leafletOptions(zoomControl = FALSE)) %>% addProviderTiles("CartoDB.Positron") %>% #CartoDB.Positron, CartoDB.Voyager maybe addTiles() %>% #addProviderTiles(providers$Stadia.AlidadeSmoothDark) %>% 
               addPolygons(
                 #outline of polygons
                 weight = 0.8, 
@@ -403,9 +452,8 @@ glasgow_map_react <- reactive({
                 highlightOptions = highlightOptions(color = "#E9BD43",
                                                     weight = 2,
                                                     bringToFront = TRUE),
-                layerId =~lad19nm,
-                #label=~HTML(map_tooltip())) %>%
-                label = ~paste(lad19nm, format(round(selected_indicator_data_year()$Value,2), big.mark = ","))) %>%
+                layerId =~area_name,
+                label = ~paste(area_name, format(round(selected_indicator_data_year()$Value,2), big.mark = ","), tooltip_measure(selected_indicator_data_year()))) %>%
               addLegend('topright', pal = pal(), values = round(selected_indicator_data_year()$Value,2), title = unique(selected_indicator_data_year()$Measure),
                         #by default legend shows quantile % ranges instead of numeric values - change
                         labFormat = function(type,cuts,p) {
@@ -415,14 +463,14 @@ glasgow_map_react <- reactive({
                                                     cuts[1] = min(selected_indicator_data_year()$Value)
                                                     p = paste0(cuts[-n], cuts[-1])}) %>%
              addControl(map_title(),position="topleft") #
-})
+
+    })
 
 ########### Summary Table ###################
 #table title
 output$table_title <- renderText({ "Latest data" })
 #table
 output$glasgow_summary_table <- DT::renderDataTable({
- # selected_columns <- selected_indicator_data_year() %>% select(Region, Value, Year)
   DT::datatable(selected_indicator_data_year()[,c("Region","Value","Measure","Year")],
                 style = 'bootstrap', rownames = FALSE, options = list(dom = 't', language = list(
                   zeroRecords = "Please make selection above to view data"),
@@ -432,41 +480,31 @@ output$glasgow_summary_table <- DT::renderDataTable({
   
 })
 
-#############Donut chart for jobs by sector#####
-###############################################
-output$jobs_by_sector <- renderPlotly({
-  plot_ly(data= selected_jobs_sector_latest() ,labels = ~Indicator, values = ~Value) %>%
-  add_pie(hole = 0.6) %>% layout(title = "Donut charts using Plotly",  showlegend = F,
-                        xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
-                        yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE))
-})
-
 ###########Time trend graph #######################
 #trend title
 output$glasgow_timetrend_title <- renderText({ paste0("Historical data for ",input$economic_indicator_choice) })
 #set tooltip label
 tooltip_trend <- reactive({
-  paste0(selected_indicator_data()$Region,"<br>",format(round(selected_indicator_data()$Value,2),big.mark=","),"<br>",selected_indicator_data()$Year)
+  paste0(selected_indicator_data()$Region,"<br>",format(round(selected_indicator_data()$Value,2),big.mark=","),tooltip_measure(selected_indicator_data()),"<br>",selected_indicator_data()$Year)
 })
 #trend graph
 output$time_trend_glasgow <- renderPlotly({
+  req(nrow(selected_indicator_data())>0)
   plot_ly(data=selected_indicator_data(), x=~Year,  y = ~Value,
-          color = ~Region,
+          color = ~Region_label,
           colors = "PuOr",
           text=tooltip_trend(), 
           hoverinfo="text"#, 
          ) %>% 
-    add_trace(type = 'scatter', mode = 'lines+markers', marker = list(size = 8)#,
+    add_trace(type = 'scatter', mode = 'lines+markers', marker = list(size = 8, symbol="square")#,
              # symbol = ~Region#, symbols = symbols_trend
                             ) %>%
     layout(
-      #title = paste0("Time trend for ",input$economic_indicator_choice),
       xaxis = list(title = "", color='white',tickcolor='white'),
       yaxis = list(title = ~unique(Measure), color='white',tickcolor='white'),
       legend = list(font = list(color ='white')),
       plot_bgcolor='rgba(0, 0, 0, 0)',
       paper_bgcolor='rgba(0, 0, 0, 0.2)',
-      #fig_bgcolor='rgba(0, 0, 0, 0)',#selected_indicator_data()$Measure)
       showlegend = TRUE
     ) %>%
     config(displayModeBar = FALSE, displaylogo = F) # taking out the plotly functions bar up top
@@ -487,17 +525,16 @@ output$glasgow_bar_subtitle <- renderText({
 
 #bar graph
 glasgow_bar_chart <- reactive({
-  plot_ly(data = selected_indicator_data_year(), hoverinfo="none")%>%  #,text=tooltip_bar, hoverinfo="text",
+  plot_ly(data = selected_indicator_data_year(), hoverinfo="none")%>%  
                   #for comaparator
-  add_trace(x = ~Region, y = ~Comp_Value, name= ~unique(Comparator), type = 'scatter', mode = 'lines',
+  add_trace(x = ~Region_label, y = ~Comp_Value, name= ~unique(Comparator), type = 'scatter', mode = 'lines',
            line = list(color = '#7d3778'), showlegend = FALSE, hoverinfo="skip") %>%
-  add_bars(x = ~reorder(Region,-Value), y = ~Value, marker = list(color='#E9BD43'), text = ~paste(Region, "<br>", format(round(Value,2),big.mark = ",")), hoverinfo="text") %>% 
+  add_bars(x = ~reorder(Region_label,-Value), y = ~Value, marker = list(color='#E9BD43'), text = ~paste(Region, "<br>", format(round(Value,2),big.mark = ","), tooltip_measure(selected_indicator_data_year())), hoverinfo="text") %>% 
    layout(annotations = list(),
      xaxis = list(title="", color='white',tickcolor='white',categoryorder="array",categoryarray = region_order(),showgrid=FALSE),
          yaxis = list(title=~unique(Measure), color='white',tickcolor='white',showgrid=FALSE),
          plot_bgcolor='rgba(0, 0, 0, 0)',
          paper_bgcolor='rgba(0, 0, 0, 0.2)') %>% #,
-         #fig_bgcolor='rgba(0, 0, 0, 0)') 
     config(displayModeBar = FALSE, displaylogo = F) # taking out the plotly functions bar up top
                           })
 
@@ -550,12 +587,18 @@ output$download_glasgow_map <- downloadHandler(
 #subset data to indicator selected
 uk_selected_indicator_data <- reactive ({
   #jobs by sector is an indicator for the uk city regions, so adding this extra layer to the dataset filter
-  if (input$uk_economic_indicator_choice=="Jobs by Sector"){
+  if (input$uk_economic_indicator_choice=="Jobs by Sector" & input$job_measure_picker =="count"){
     indicators_data %>%
       subset(Indicator == input$uk_economic_indicator_choice &
                Job_sector == input$uk_jobs_choice &
                Measure == "Count" & # need to modify somewhere
                Region %in% input$uk_region_choice)             
+  } else if (input$uk_economic_indicator_choice=="Jobs by Sector" & input$job_measure_picker =="perc"){
+    indicators_data %>%
+      subset(Indicator == input$uk_economic_indicator_choice &
+               Job_sector == input$uk_jobs_choice &
+               Measure == "Percentage (%)" & # need to modify somewhere
+               Region %in% input$uk_region_choice) 
   } else {
     indicators_data %>%
       subset(Indicator == input$uk_economic_indicator_choice &
@@ -563,41 +606,36 @@ uk_selected_indicator_data <- reactive ({
   }
 })
 
-# uk_latest_indicator_data <- reactive({
-#   latest_data %>% subset(Indicator %in% input$uk_economic_indicator_choice &
-#                            Region %in% input$uk_region_choice)
-# })
 
 #eventReactive instead of reactive so that it changes based on input - otherwise get error messages when you change indicator and comparator doesn't exist
-uk_comparator_data <- eventReactive(input$uk_comparator_choice,{  
-  if (input$uk_economic_indicator_choice=="Jobs by Sector"){
-  latest_data %>% subset(Indicator %in% input$uk_economic_indicator_choice & Region %in% input$uk_comparator_choice & Job_sector %in% input$uk_jobs_choice & Measure == ifelse(input$job_measure_picker == "perc","Percentage (%)","Count"))#job_sector_measure())
+uk_comparator_data <- reactive({
+ if (input$uk_economic_indicator_choice=="Jobs by Sector" & input$job_measure_picker =="count"){
+  latest_data %>% subset(Indicator %in% input$uk_economic_indicator_choice & Region %in% input$uk_comparator_choice & Job_sector %in% input$uk_jobs_choice & Measure == "Count")#job_sector_measure())
  # print(input$jobs_measure_picker)
-    } else {
+    } else if (input$uk_economic_indicator_choice=="Jobs by Sector" & input$job_measure_picker =="perc"){
+      latest_data %>% subset(Indicator %in% input$uk_economic_indicator_choice & Region %in% input$uk_comparator_choice & Job_sector %in% input$uk_jobs_choice & Measure == "Percentage (%)")
+      }  else {
   latest_data %>% subset(Indicator %in% input$uk_economic_indicator_choice & Region %in% input$uk_comparator_choice) #%>% rename(Comparator = Region, Comp_Value = Value)
   }
  
 })
 
-#####################################################################
-#########################revisit
-######################################################################
-#####################################################################
-#####################################################################
-
-job_sector_measure <- observeEvent(input$job_measure_picker,{
-  if (input$job_measure_picker =="count") { "Count"}
-  else if (input$job_measure_picker =="perc") {"Percentage (%)"}
-  })
 
 uk_selected_indicator_data_year <- reactive ({
-  if (input$uk_economic_indicator_choice=="Jobs by Sector"){
+  if (input$uk_economic_indicator_choice=="Jobs by Sector" & input$job_measure_picker =="count"){
   latest_data_filtered <- latest_data %>% subset(Indicator %in% input$uk_economic_indicator_choice &
                                                    Job_sector %in% input$uk_jobs_choice &
-                                                   Measure == job_sector_measure() & #ifelse(input$job_measure_picker == "perc","Percentage (%)","Count") &
+                                                   Measure == "Count" & #ifelse(input$job_measure_picker == "perc","Percentage (%)","Count") &
                                                    Region %in% input$uk_region_choice) #%>% mutate(Comparator = uk_comparator_data()$Region, Comp_Value = uk_comparator_data()$Value)
   latest_data_filtered$Comparator <- rep(uk_comparator_data()$Region,nrow(latest_data_filtered))
   latest_data_filtered$Comp_Value <- rep(uk_comparator_data()$Value,nrow(latest_data_filtered))
+  } else if (input$uk_economic_indicator_choice=="Jobs by Sector" & input$job_measure_picker =="perc"){
+    latest_data_filtered <- latest_data %>% subset(Indicator %in% input$uk_economic_indicator_choice &
+                                                     Job_sector %in% input$uk_jobs_choice &
+                                                     Measure == "Percentage (%)" & #ifelse(input$job_measure_picker == "perc","Percentage (%)","Count") &
+                                                     Region %in% input$uk_region_choice) #%>% mutate(Comparator = uk_comparator_data()$Region, Comp_Value = uk_comparator_data()$Value)
+    latest_data_filtered$Comparator <- rep(uk_comparator_data()$Region,nrow(latest_data_filtered))
+    latest_data_filtered$Comp_Value <- rep(uk_comparator_data()$Value,nrow(latest_data_filtered))  
   } else {
   latest_data_filtered <- latest_data %>% subset(Indicator %in% input$uk_economic_indicator_choice &
                                                      Region %in% input$uk_region_choice) #%>% mutate(Comparator = uk_comparator_data()$Region, Comp_Value = uk_comparator_data()$Value)  
@@ -609,23 +647,19 @@ uk_selected_indicator_data_year <- reactive ({
 
 
 observeEvent(input$uk_region_choice,{
+  if(length(input$uk_region_choice)>1){
   shinyjs::hide(id="intro_page3_text")
-  shinyjs::show(id="uk_areas_comparison")
+  shinyjs::show(id="uk_areas_comparison")} else {
+  shinyjs::show(id="intro_page3_text")
+  shinyjs::hide(id="uk_areas_comparison")  
+  }
 }, ignoreInit = TRUE)
 
 #need uk shapefile for map
 uk_selected_areas <- reactive ({
   uk_map_regions %>%
-    subset(cauth19nm %in% input$uk_region_choice)
+    subset(area_name %in% input$uk_region_choice)
 })
-
-#for jobs will need to subset twice for % of jobs by sector
-# uk_selected_jobs_sector_latest <- reactive ({
-#   
-#   latest_data %>% subset(Indicator %in% input$uk_jobs_choice &
-#                            Region %in% input$uk_region_choice)
-#   
-# })
 
 uk_comparators_available <- reactive({
   list <-c(unique(latest_data$Region[latest_data$Indicator == input$uk_economic_indicator_choice & latest_data$Region %in% comparators]))
@@ -649,7 +683,6 @@ observeEvent(input$uk_economic_indicator_choice,{
     updateSelectizeInput(session,"economic_indicator_choice", label = NULL, choices=indicators_cleaned,
                          selected = input$uk_economic_indicator_choice)
   }
-  print(input$job_measure_picker)
 
 })
 ###############################################
@@ -659,7 +692,7 @@ observeEvent(input$uk_economic_indicator_choice,{
 output$uk_map_title <- renderText({ unique(paste0("Latest data available: ", latest_data$Year[latest_data$Indicator == input$uk_economic_indicator_choice])) })
 output$uk_timeseries_title <- renderText({ paste0("Historical data for ",input$uk_economic_indicator_choice) })
 output$uk_latest_data <- renderText({ paste0("Latest data available: ", unique(uk_selected_indicator_data_year()$Year))})
-output$uk_indicator_title <- renderUI({ HTML(paste0("<h3>",input$uk_economic_indicator_choice,"</h3>","<p>(Latest data: ",unique(uk_selected_indicator_data_year()$Year),")</p>"))})
+output$uk_indicator_title <- renderUI({ if(unique(uk_selected_indicator_data_year()$Job_sector)==""){HTML(paste0("<h3>",input$uk_economic_indicator_choice,"</h3>","<p>(Latest data: ",unique(uk_selected_indicator_data_year()$Year),")</p>"))} else {HTML(paste0("<h3>",unique(uk_selected_indicator_data_year()$Job_sector),"</h3>","<p>(Latest data: ",unique(uk_selected_indicator_data_year()$Year),")</p>"))}})
 
 #create colorQuantiles for chloropleth map
 pal_uk <- reactive({
@@ -670,7 +703,11 @@ pal_uk <- reactive({
 
 #map title
 uk_map_title <- reactive({
-  paste0(input$uk_economic_indicator_choice," (",unique(uk_selected_indicator_data_year()$Year)," data)")
+  #if job sector want this to be displayed as the title not the indicator
+  if(input$uk_economic_indicator_choice== "Jobs by Sector") {
+   paste0(unique(uk_selected_indicator_data_year()$Job_sector)," jobs (",unique(uk_selected_indicator_data_year()$Year)," data)")
+  #otherwise show the indicator
+  } else { paste0(input$uk_economic_indicator_choice," (",unique(uk_selected_indicator_data_year()$Year)," data)") }
 })
 
 #code for the UK regions map
@@ -687,11 +724,10 @@ uk_map_react <- reactive({
                 highlightOptions = highlightOptions(color = "#E9BD43",
                                                     weight = 2,
                                                     bringToFront = TRUE),
-                layerId =~cauth19nm,
-                # label=~lad19nm) 
+                layerId =~area_name,
                 label=~paste(
-                  cauth19nm," : ",
-                  format(round(uk_selected_indicator_data_year()$Value,2), big.mark = ","))) %>%
+                  area_name," : ",
+                  format(round(uk_selected_indicator_data_year()$Value,2), big.mark = ","), tooltip_measure(uk_selected_indicator_data_year()))) %>%
     addLegend('topright', pal = pal_uk(), values = round(uk_selected_indicator_data_year()$Value,2), title = unique(uk_selected_indicator_data_year()$Measure),
               #by default legend shows quantile % ranges instead of numeric values - change
               labFormat = function(type,cuts,p) {
@@ -700,12 +736,13 @@ uk_map_react <- reactive({
                 for (i in 2:(n-1)){cuts[i] = ""} 	
                 cuts[1] = min(uk_selected_indicator_data_year()$Value)
                 p = paste0(cuts[-n], cuts[-1])}) %>%
+    #adding a title on top of the map so that when downloaded as png it is obvious what indicator is
     addControl(uk_map_title(),position="topleft")
   
 })
 
 
-#render UK regiosn map
+#render UK regions map
 output$uk_map <- renderLeaflet({
   uk_map_react()
 })
@@ -716,7 +753,6 @@ output$uk_table_title <- renderText({ "Latest data" })
 
 #table
 output$uk_summary_table <- DT::renderDataTable({
-  # selected_columns <- selected_indicator_data_year() %>% select(Region, Value, Year)
   DT::datatable(uk_selected_indicator_data_year()[,c("Region","Value", "Measure","Year")],
                 style = 'bootstrap', rownames = FALSE, options = list(dom = 't', language = list(
                   zeroRecords = "Please make selection above to view data"),
@@ -731,8 +767,7 @@ output$uk_summary_table <- DT::renderDataTable({
 output$uk_timetrend_title <- renderText({ paste0("Historical data for ",input$uk_economic_indicator_choice) })
 #set tooltip label
 uk_tooltip_trend <- reactive({
-  paste0(uk_selected_indicator_data()$Region,"<br>",format(round(uk_selected_indicator_data()$Value,2), big.mark = ","),"<br>",uk_selected_indicator_data()$Year)
-  #HTML(paste0("<b>",uk_selected_indicator_data()$Region,"</b><br>",format(round(uk_selected_indicator_data()$Value), big.mark = ","),"<br>",uk_selected_indicator_data()$Year))
+  paste0(uk_selected_indicator_data()$Region,"<br>",format(round(uk_selected_indicator_data()$Value,2), big.mark = ","), tooltip_measure(uk_selected_indicator_data()),"<br>",uk_selected_indicator_data()$Year)
   })
 #trend graph
 output$time_trend_uk <- renderPlotly({
@@ -740,22 +775,17 @@ output$time_trend_uk <- renderPlotly({
   plot_ly(data=uk_selected_indicator_data(), x=~Year,  y = ~Value,
           color = ~Region,
           colors = "PuOr",
-          # colors=colorRampPalette(brewer.pal(("#7d3780","#E9BD43"),(length(~Region)))),
           text=uk_tooltip_trend(), 
-          hoverinfo="text"#, 
-          # height = 600 
+          hoverinfo="text" 
   ) %>% 
-    add_trace(type = 'scatter', mode = 'lines+markers', marker = list(size = 8)#,
-              # symbol = ~Region#, symbols = symbols_trend
+    add_trace(type = 'scatter', mode = 'lines+markers', marker = list(size = 8, symbol="square")#,
     ) %>%
     layout(
-      #title = paste0("Time trend for ",input$economic_indicator_choice),
       xaxis = list(title = "", color='white',tickcolor='white', dtick = 1),
       yaxis = list(title = ~unique(Measure), color='white',tickcolor='white'),
       legend = list(font = list(color ='white')),
       plot_bgcolor='rgba(0, 0, 0, 0)',
       paper_bgcolor='rgba(0, 0, 0, 0.2)',
-      #fig_bgcolor='rgba(0, 0, 0, 0)',#selected_indicator_data()$Measure)
       showlegend = TRUE
     ) %>%
     config(displayModeBar = FALSE, displaylogo = F) # taking out the plotly functions bar up top
@@ -781,7 +811,7 @@ output$uk_rank_plot <- renderPlotly({
     #for comaparator
     add_trace(x = ~Region, y = ~Comp_Value, name= ~unique(Comparator), type = 'scatter', mode = 'lines',
               line = list(color = '#7d3778'), showlegend = FALSE) %>%
-    add_bars(x = ~reorder(Region,-Value), y = ~Value, marker = list(color='#E9BD43'), text = ~paste(Region, "<br>", format(round(Value,2),big.mark = ",")), hoverinfo="text") %>% 
+    add_bars(x = ~reorder(Region,-Value), y = ~Value, marker = list(color='#E9BD43'), text = ~paste(Region,"<br>",format(round(Value,2),big.mark = ","), tooltip_measure(uk_selected_indicator_data_year())), hoverinfo="text") %>% 
     layout(annotations = list(),
            xaxis = list(title="", color='white',tickcolor='white',categoryorder="array",categoryarray = region_order(),showgrid=FALSE),
            yaxis = list(title=~unique(Measure), color='white',tickcolor='white',showgrid=FALSE),
