@@ -18,7 +18,7 @@ library(raster)
 library(shinyBS) # for modals
 library(tinytex) # for downloading .doc and .pdf extension reports
 library(webshot) # for downloading pngs
-webshot::install_phantomjs()
+webshot::install_phantomjs(force=FALSE)
 library(htmlwidgets)
 library(mapview) #to download png of map
 library(htmltools) #for tooltips
